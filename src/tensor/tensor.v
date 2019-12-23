@@ -243,3 +243,92 @@ pub fn (t Tensor) view(idx1 []int, idx2 []int) Tensor {
 	return ret
 }
 
+fn dup_flags(f map[string]bool) map[string]bool {
+	mut ret := map[string]bool
+	for i in ["contiguous", "fortran", "owndata", "write"] {
+		ret[i] = f[i]
+	}
+	return ret
+}
+
+pub fn (t Tensor) dup_view() Tensor {
+	mut newflags := dup_flags(t.flags)
+	newflags["owndata"] = false
+
+	ret := Tensor{
+		shape: t.shape.clone()
+		strides: t.strides.clone()
+		buffer: t.buffer
+		flags: newflags
+		size: t.size
+		ndims: t.ndims
+	}
+	return ret
+}
+
+fn min(a int, b int) int {
+	if a > b { return b }
+	return a
+}
+
+pub fn (t Tensor) diag_view() Tensor {
+	nel := min(t.shape[0], t.shape[1])
+	mut newflags := dup_flags(t.flags)
+	newflags["owndata"] = false
+
+	ret := Tensor{
+		shape: [nel]
+		strides: [t.strides[0] + t.strides[1]]
+		buffer: t.buffer
+		flags: newflags
+		size: t.size
+		ndims: 1
+	}
+	return ret
+}
+
+pub fn (t Tensor) reshape(newshape []int) Tensor {
+	newsize := 1
+	cur_size := t.size
+	autoresize := -1
+
+	for i, val in newshape {
+		if (val < 0) {
+			if (autoresize >= 0) {
+				return error("Only one shape dimension can be inferred")
+			}
+			autosize = i
+		} else {
+			newsize *= val
+		}
+	}
+
+	if (autosize >= 0) {
+		newshape = newshape.clone()
+		newshape[autosize] = int(newsize/cur_size)
+		newsize *= newshape[autosize]
+	}
+
+	if (newsize != cur_size) {
+		return error("Cannot fit into new array")
+	}
+
+	mut stride := 0
+	mut newstrides = [newshape.len]int
+	if t.flags["contiguous"] {
+		stride = 1
+		for i, d in newshape.reverse() {
+			newstrides[i] = stride
+			stride *= d
+		}
+	} else {
+		stride = 1
+		for i, d in newshape {
+			newstrides[i] = stride
+			stride *= d
+		}
+	}
+
+	return t
+}
+
