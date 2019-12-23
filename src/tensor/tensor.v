@@ -1,12 +1,53 @@
 module tensor
+import strings
 
 struct Tensor {
-	shape []int
-	strides []int
-	ndims int
-	size int
 	itemsize int
 	buffer &f64
+	pub:
+		shape []int
+		strides []int
+		ndims int
+		size int
+		flags map[string]bool
+}
+
+fn default_flags(order string) map[string]bool {
+	mut m := {
+		"contiguous": false
+		"fortran": false
+		"owndata": true
+		"write": true
+	}
+	if (order == 'F') {
+		m["fortran"] = true
+	} else if (order == 'C') {
+		m["contiguous"] = true
+	}
+	return m
+}
+
+pub fn (f map[string]bool) str() string {
+	mut io := strings.new_builder(1000)
+	io.write("C_CONTIGUOUS: ")
+	io.write(f["contiguous"].str())
+	io.write("\nF_CONTIGUOUS: ")
+	io.write(f["fortran"].str())
+	io.write("\nOWNDATA: ")
+	io.write(f["owndata"].str())
+	io.write("\nWRITE: ")
+	io.write(f["write"].str())
+	return io.str()
+}
+
+fn all_flags() map[string]bool {
+	m := {
+		"contiguous": true
+		"fortran": true
+		"owndata": true
+		"write": true
+	}
+	return m
 }
 
 fn cstrides(shape []int) []int {
@@ -59,6 +100,7 @@ pub fn from_shape(shape []int) Tensor {
 		size: size
 		buffer: buffer
 		itemsize: 8
+		flags: default_flags('C')
 	}
 }
 
@@ -83,6 +125,64 @@ pub fn (t Tensor) set(idx []int, val f64) {
 	*ptr = val
 }
 
+pub fn (t Tensor) is_fortran_contiguous() bool {
+	if (t.ndims == 0) { return true }
+	if (t.ndims == 1) { return t.shape[0] == 1 || t.strides[0] == 1}
+
+	mut sd := 1
+	mut i := 0
+
+	for i < t.ndims {
+		dim := t.shape[i]
+		if (dim == 0) { return true }
+		if (t.strides[i] != sd) { return false }
+		sd *= dim
+		i++
+	}
+
+	return true
+}
+
+pub fn (t Tensor) is_contiguous() bool {
+	if (t.ndims == 0) { return true }
+	if (t.ndims == 1) { return t.shape[0] == 1 || t.strides[0] == 1 }
+
+	mut sd := 1
+	mut i := t.ndims - 1
+
+	for i > 0 {
+		dim := t.shape[i]
+		if (dim == 0) { return true }
+		if (t.strides[i] != sd) { return false }
+		sd *= dim
+		i--
+	}
+	return true
+}
+
+pub fn (t mut Tensor) update_flags(d map[string]bool) {
+	if (d["fortran"] && t.flags["fortran"]) {
+		if t.is_fortran_contiguous() {
+			t.flags["fortran"] = true
+			if t.ndims > 1 {
+				t.flags["contiguous"] = false
+			}
+		} else {
+			t.flags["fortran"] = false
+		}
+	}
+	if (d["contiguous"] && t.flags["contiguous"]) {
+		if t.is_contiguous() {
+			t.flags["contiguous"] = true
+			if t.ndims > 1 {
+				t.flags["fortran"] = false
+			}
+		} else {
+			t.flags["contiguous"] = false
+		}
+	}
+}
+
 fn (t Tensor) flat_iter() NdIter {
 	ptr := t.buffer
 	shape := t.shape
@@ -102,3 +202,44 @@ pub fn (t Tensor) str() string {
 	mut printer := init_printer(t)
 	return printer.print()
 }
+
+pub fn (t Tensor) view(idx1 []int, idx2 []int) Tensor {
+	mut newshape := t.shape.clone()
+	mut newstrides := t.strides.clone()
+	mut newflags := default_flags('C')
+	mut ii := 0
+	mut idx := []int
+	for ii < t.ndims {
+		fi := idx1[ii]
+		li := idx2[ii]
+		if (fi == li) {
+			newshape[ii] = 0
+			newstrides[ii] = 0
+			idx << fi
+		} else {
+			offset := li - fi
+			newshape[ii] = offset
+			idx << fi
+		}
+		ii++
+	}
+	newshape_ := newshape.filter(it != 0)
+	newstrides_ := newstrides.filter(it != 0)
+	mut ptr := t.buffer
+	mut i := 0
+	for i < t.ndims {
+		ptr += t.strides[i] * idx[i]
+		i++
+	}
+	mut ret := Tensor{
+		shape: newshape_
+		strides: newstrides_
+		ndims: newshape_.len
+		size: tensor.shape_size(newshape_)
+		buffer: ptr
+		flags: newflags
+	}
+	ret.update_flags(all_flags())
+	return ret
+}
+
