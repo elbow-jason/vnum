@@ -82,11 +82,12 @@ fn (t Tensor) set(idx []int, val f64) {
 }
 
 struct NdIter {
-	ptr &f64
-	shape []int
-	strides []int
-	track []int
-	dim int
+	pub mut:
+		ptr &f64
+		shape []int
+		strides []int
+		track []int
+		dim int
 }
 
 fn (t Tensor) flat_iter() NdIter {
@@ -121,5 +122,6 @@ fn (iter mut NdIter) next() &f64 {
 		ret += stride_i
 		break
 	}
+	iter.ptr = ret
 	return ret
 }
