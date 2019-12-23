@@ -1,4 +1,4 @@
-Vnum is in active development, and contributions are always welcome!
+Vnum is in active development, and contributions are always welcome!  Progress will not be that useful until generics are implemented in v.
 
 ```v
 fn main() {
