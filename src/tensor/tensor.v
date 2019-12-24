@@ -89,18 +89,37 @@ fn shape_size(shape []int) int {
 }
 
 pub fn from_shape(shape []int) Tensor {
+	return empty_contig(shape)
+}
+
+fn empty_contig(shape []int) Tensor {
 	strides := cstrides(shape)
 	ndims := shape.len
 	size := shape_size(shape)
-	buffer := *f64(calloc(size * 8))
+	buffer := *f64(calloc(size * sizeof(f64)))
 	return Tensor {
 		shape: shape
 		strides: strides
 		ndims: ndims
 		size: size
 		buffer: buffer
-		itemsize: 8
+		itemsize: sizeof(f64)
 		flags: default_flags('C')
+	}
+}
+
+fn empty_fortran(shape []int) Tensor {
+	strides := fstrides(shape)
+	size := shape_size(shape)
+	buffer := *f64(calloc(size * sizeof(f64)))
+	return Tensor {
+		shape: shape
+		strides: strides
+		ndims: shape.len
+		size: size
+		buffer: buffer
+		itemsize: sizeof(f64)
+		flags: default_flags('F')
 	}
 }
 
@@ -287,48 +306,34 @@ pub fn (t Tensor) diag_view() Tensor {
 	return ret
 }
 
-pub fn (t Tensor) reshape(newshape []int) Tensor {
-	newsize := 1
-	cur_size := t.size
-	autoresize := -1
-
-	for i, val in newshape {
-		if (val < 0) {
-			if (autoresize >= 0) {
-				return error("Only one shape dimension can be inferred")
-			}
-			autosize = i
-		} else {
-			newsize *= val
-		}
+pub fn (t Tensor) memory_into(order string) Tensor {
+	mut ret := Tensor{buffer: *f64(calloc(0))}
+	if order == 'F' {
+		ret = empty_fortran(t.shape)
+	} else if order == 'C' {
+		ret = empty_contig(t.shape)
 	}
-
-	if (autosize >= 0) {
-		newshape = newshape.clone()
-		newshape[autosize] = int(newsize/cur_size)
-		newsize *= newshape[autosize]
+	mut ia := ret.flat_iter()
+	mut ib := t.flat_iter()
+	mut i := 0
+	for i < t.size {
+		mut ptr := ia.next()
+		*ptr = *ib.next()
+		i++
 	}
+	ret.update_flags(all_flags())
+	return ret
+}
 
-	if (newsize != cur_size) {
-		return error("Cannot fit into new array")
+pub fn seq(n int) Tensor {
+	ret := empty_contig([n])
+	mut ii := 0
+	mut iter := ret.flat_iter()
+	for ii < n {
+		mut ptr := iter.next()
+		*ptr = f64(ii)
+		ii++
 	}
-
-	mut stride := 0
-	mut newstrides = [newshape.len]int
-	if t.flags["contiguous"] {
-		stride = 1
-		for i, d in newshape.reverse() {
-			newstrides[i] = stride
-			stride *= d
-		}
-	} else {
-		stride = 1
-		for i, d in newshape {
-			newstrides[i] = stride
-			stride *= d
-		}
-	}
-
-	return t
+	return ret
 }
 
