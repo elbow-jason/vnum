@@ -9,7 +9,7 @@ struct NdIter {
 		dim int
 }
 
-fn (iter mut NdIter) next() &f64 {
+pub fn (iter mut NdIter) next() &f64 {
 	ret := iter.ptr
 	mut i := iter.dim
 	for i >= 0 {

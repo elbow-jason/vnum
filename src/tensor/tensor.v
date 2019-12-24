@@ -1,7 +1,7 @@
 module tensor
 import strings
 
-struct Tensor {
+pub struct Tensor {
 	itemsize int
 	buffer &f64
 	pub mut:
@@ -12,125 +12,19 @@ struct Tensor {
 		flags map[string]bool
 }
 
-fn default_flags(order string) map[string]bool {
-	mut m := {
-		"contiguous": false
-		"fortran": false
-		"owndata": true
-		"write": true
-	}
-	if (order == 'F') {
-		m["fortran"] = true
-	} else if (order == 'C') {
-		m["contiguous"] = true
-	}
-	return m
+pub struct Permutation {
+	pub mut:
+		item Tensor
 }
 
-pub fn (f map[string]bool) str() string {
-	mut io := strings.new_builder(1000)
-	io.write("C_CONTIGUOUS: ")
-	io.write(f["contiguous"].str())
-	io.write("\nF_CONTIGUOUS: ")
-	io.write(f["fortran"].str())
-	io.write("\nOWNDATA: ")
-	io.write(f["owndata"].str())
-	io.write("\nWRITE: ")
-	io.write(f["write"].str())
-	return io.str()
-}
-
-fn all_flags() map[string]bool {
-	m := {
-		"contiguous": true
-		"fortran": true
-		"owndata": true
-		"write": true
-	}
-	return m
-}
-
-fn no_flags() map[string]bool {
-	m := {
-		"contiguous": false
-		"fortran": false
-		"owndata": false
-		"write": true
-	}
-	return m
-}
-
-fn cstrides(shape []int) []int {
-	mut sz := 1
-	mut ii := 0
-	ndims := shape.len
-	mut strides := [0].repeat(ndims)
-
-	for ii < ndims {
-		strides[ndims - ii - 1] = sz
-		sz *= shape[ndims - ii - 1]
-		ii++
-	}
-
-	return strides
-}
-
-fn fstrides(shape []int) []int {
-	mut sz := 1
-	mut ii := 0
-	ndims := shape.len
-	mut strides := [0].repeat(ndims)
-
-	for ii < ndims {
-		strides[ii] = sz
-		sz *= shape[ii]
-		ii++
-	}
-
-	return strides
-}
-
-fn shape_size(shape []int) int {
-	mut sz := 1
-	for s in shape {
-		sz *= s
-	}
-	return sz
-}
-
-pub fn from_shape(shape []int) Tensor {
-	return empty_contig(shape)
-}
-
-fn empty_contig(shape []int) Tensor {
-	strides := cstrides(shape)
-	ndims := shape.len
-	size := shape_size(shape)
-	buffer := *f64(calloc(size * sizeof(f64)))
-	return Tensor {
-		shape: shape
-		strides: strides
-		ndims: ndims
-		size: size
-		buffer: buffer
-		itemsize: sizeof(f64)
-		flags: default_flags('C')
+pub fn (t Tensor) permute() Permutation {
+	return Permutation{
+		item: t
 	}
 }
 
-fn empty_fortran(shape []int) Tensor {
-	strides := fstrides(shape)
-	size := shape_size(shape)
-	buffer := *f64(calloc(size * sizeof(f64)))
-	return Tensor {
-		shape: shape
-		strides: strides
-		ndims: shape.len
-		size: size
-		buffer: buffer
-		itemsize: sizeof(f64)
-		flags: default_flags('F')
-	}
+pub fn (p Permutation) shape(s []int) Tensor {
+	return reshape(p.item, s)
 }
 
 fn (t Tensor) get(idx []int) f64 {
@@ -154,65 +48,20 @@ pub fn (t Tensor) set(idx []int, val f64) {
 	*ptr = val
 }
 
-pub fn (t Tensor) is_fortran_contiguous() bool {
-	if (t.ndims == 0) { return true }
-	if (t.ndims == 1) { return t.shape[0] == 1 || t.strides[0] == 1}
-
-	mut sd := 1
+pub fn (t Tensor) set_view(idx1 []int, idx2 []int, val Tensor) {
+	slice := t.view(idx1, idx2)
+	mut ia := slice.flat_iter()
+	mut ib := val.flat_iter()
 	mut i := 0
-
-	for i < t.ndims {
-		dim := t.shape[i]
-		if (dim == 0) { return true }
-		if (t.strides[i] != sd) { return false }
-		sd *= dim
+	
+	for i < slice.size {
+		mut ptr := ia.next()
+		*ptr = *ib.next()
 		i++
 	}
-
-	return true
 }
 
-pub fn (t Tensor) is_contiguous() bool {
-	if (t.ndims == 0) { return true }
-	if (t.ndims == 1) { return t.shape[0] == 1 || t.strides[0] == 1 }
-
-	mut sd := 1
-	mut i := t.ndims - 1
-
-	for i > 0 {
-		dim := t.shape[i]
-		if (dim == 0) { return true }
-		if (t.strides[i] != sd) { return false }
-		sd *= dim
-		i--
-	}
-	return true
-}
-
-pub fn (t mut Tensor) update_flags(d map[string]bool) {
-	if (d["fortran"] && t.flags["fortran"]) {
-		if t.is_fortran_contiguous() {
-			t.flags["fortran"] = true
-			if t.ndims > 1 {
-				t.flags["contiguous"] = false
-			}
-		} else {
-			t.flags["fortran"] = false
-		}
-	}
-	if (d["contiguous"] && t.flags["contiguous"]) {
-		if t.is_contiguous() {
-			t.flags["contiguous"] = true
-			if t.ndims > 1 {
-				t.flags["fortran"] = false
-			}
-		} else {
-			t.flags["contiguous"] = false
-		}
-	}
-}
-
-fn (t Tensor) flat_iter() NdIter {
+pub fn (t Tensor) flat_iter() NdIter {
 	ptr := t.buffer
 	shape := t.shape
 	dim := t.ndims - 1
@@ -225,16 +74,6 @@ fn (t Tensor) flat_iter() NdIter {
 		track: track
 		strides: strides
 	}
-}
-
-fn delete_at(a []int, index int) []int {
-	mut ret := []int
-	for i, d in a {
-		if (i != index) {
-			ret << d
-		}
-	}
-	return ret
 }
 
 pub fn (t Tensor) axis_iter(axis int) AxesIter {
@@ -271,10 +110,14 @@ pub fn (t Tensor) view(idx1 []int, idx2 []int) Tensor {
 	mut newstrides := t.strides.clone()
 	mut newflags := default_flags('C')
 	mut ii := 0
+
+	idx_start := pad_with_zeros(idx1, t.ndims)
+	idx_end := pad_with_max(idx2, t.shape, t.ndims)
+
 	mut idx := []int
 	for ii < t.ndims {
-		fi := idx1[ii]
-		li := idx2[ii]
+		fi := idx_start[ii]
+		li := idx_end[ii]
 		if (fi == li) {
 			newshape[ii] = 0
 			newstrides[ii] = 0
@@ -303,14 +146,6 @@ pub fn (t Tensor) view(idx1 []int, idx2 []int) Tensor {
 		flags: newflags
 	}
 	ret.update_flags(all_flags())
-	return ret
-}
-
-fn dup_flags(f map[string]bool) map[string]bool {
-	mut ret := map[string]bool
-	for i in ["contiguous", "fortran", "owndata", "write"] {
-		ret[i] = f[i]
-	}
 	return ret
 }
 
@@ -381,82 +216,7 @@ pub fn seq(n int) Tensor {
 	return ret
 }
 
-fn add_(a f64, b f64) f64 {
-	return a + b
-}
-
-fn subtract_(a f64, b f64) f64 {
-	return a - b
-}
-
-fn divide_(a f64, b f64) f64 {
-	return a / b
-}
-
-fn multiply_(a f64, b f64) f64 {
-	return a * b
-}
-
-fn op(a Tensor, b Tensor, op fn(f64, f64)f64) Tensor {
-	ret := a.memory_into('C')
-	mut ret_iter := ret.flat_iter()
-	mut rhs_iter := b.flat_iter()
-	mut ii := 0
-
-	for ii < a.size {
-		mut ptr := ret_iter.next()
-		*ptr = op(*ptr, *rhs_iter.next())
-		ii++
-	}
-	return ret
-}
-
-fn op_scalar(a Tensor, b f64, op fn(f64, f64)f64) Tensor {
-	ret := a.memory_into('C')
-	mut ret_iter := ret.flat_iter()
-	mut ii := 0
-
-	for ii < a.size {
-		mut ptr := ret_iter.next()
-		*ptr = op(*ptr, b)
-		ii++
-	}
-	return ret
-}
-
-pub fn add(a Tensor, b Tensor) Tensor {
-	return op(a, b, add_)
-}
-
-pub fn add_scalar(a Tensor, b f64) Tensor {
-	return op_scalar(a, b, add_)
-}
-
-pub fn subtract(a Tensor, b Tensor) Tensor {
-	return op(a, b, subtract_)
-}
-
-pub fn subtract_scalar(a Tensor, b f64) Tensor {
-	return op_scalar(a, b, subtract_)
-}
-
-pub fn divide(a Tensor, b Tensor) Tensor {
-	return op(a, b, divide_)
-}
-
-pub fn divide_scalar(a Tensor, b f64) Tensor {
-	return op_scalar(a, b, divide_)
-}
-
-pub fn multiply(a Tensor, b Tensor) Tensor {
-	return op(a, b, multiply_)
-}
-
-pub fn multiply_scalar(a Tensor, b f64) Tensor {
-	return op_scalar(a, b, divide_)
-}
-
-pub fn (t Tensor) shape_into(shape []int) Tensor {
+pub fn reshape(t Tensor, shape []int) Tensor {
 	mut ret := t.dup_view()
 	mut newshape := shape.clone()
 	mut newsize := 1
@@ -542,21 +302,5 @@ pub fn (t Tensor) axes_into(order []int) Tensor {
 	}
 	ret.update_flags(all_flags())
 	return ret
-}
-
-pub fn (a Tensor) sum_axis(axis int) Tensor {
-	mut ai := a.axis_iter(axis)
-	mut ii := 1
-	mut ret := ai.next()
-	for ii < a.shape[axis] {
-		ret = add(ret, ai.next())
-		ii++
-	}
-	return ret
-}
-
-pub fn (a Tensor) mean_axis(axis int) Tensor {
-	ret := a.sum_axis(axis)
-	return divide_scalar(ret, a.shape[axis])
 }
 
