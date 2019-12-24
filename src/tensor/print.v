@@ -37,7 +37,7 @@ fn init_printer(tns Tensor) Printer {
 
 	if tns.ndims > 2 {
 		mut i := 0
-		for i < (int(tns.ndims / 2) - 1) {
+		for i < (tns.ndims / 2) - 1 {
 			offset := tns.ndims - i - 1
 			tmp := prnt.strides[i]
 			prnt.strides[i] = prnt.strides[offset]
@@ -70,20 +70,21 @@ fn (p mut Printer) print() string {
 fn (p mut Printer) inc() bool {
 	mut first_item := 0
 	mut ii := 0
-	p.idx[ii] += 1
+	mut idx := p.idx
+	idx[ii]++
 	ptr := p.iter.next()
 	for {
-		if (p.idx[ii] != p.shape[ii]) {
+		if (idx[ii] != p.shape[ii]) {
 			break
 		}
 		p.idx[ii] = 0
 		ii++
-		if (ii == p.idx.len) {
+		if (ii == idx.len) {
 			p.io.write("]".repeat(ii))
 			return false
 		}
 		first_item++
-		p.idx[ii] += 1
+		idx[ii]++
 	}
 
 	if (ii != 0) {

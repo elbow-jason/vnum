@@ -1,5 +1,4 @@
 module tensor
-import strings
 
 pub struct Tensor {
 	itemsize int
@@ -12,25 +11,14 @@ pub struct Tensor {
 		flags map[string]bool
 }
 
-pub struct Permutation {
-	pub mut:
-		item Tensor
-}
-
-pub fn (t Tensor) permute() Permutation {
-	return Permutation{
-		item: t
-	}
-}
-
-pub fn (p Permutation) shape(s []int) Tensor {
-	return reshape(p.item, s)
-}
-
-fn (t Tensor) get(idx []int) f64 {
+pub fn (t Tensor) get(idx []int) f64 {
 	mut offset := 0
 	mut i := 0
 	for i < t.ndims {
+		mut idxer := idx[i]
+		if idxer < 0 {
+			idxer += t.shape[i]
+		}
 		offset += idx[i] * t.strides[i]
 		i++
 	}
@@ -108,7 +96,7 @@ pub fn (t Tensor) str() string {
 pub fn (t Tensor) view(idx1 []int, idx2 []int) Tensor {
 	mut newshape := t.shape.clone()
 	mut newstrides := t.strides.clone()
-	mut newflags := default_flags('C')
+	newflags := default_flags('C')
 	mut ii := 0
 
 	idx_start := pad_with_zeros(idx1, t.ndims)
@@ -116,8 +104,14 @@ pub fn (t Tensor) view(idx1 []int, idx2 []int) Tensor {
 
 	mut idx := []int
 	for ii < t.ndims {
-		fi := idx_start[ii]
-		li := idx_end[ii]
+		mut fi := idx_start[ii]
+		if fi < 0 {
+			fi += t.shape[ii]
+		}
+		mut li := idx_end[ii]
+		if li < 0 {
+			li += t.shape[ii]
+		}
 		if (fi == li) {
 			newshape[ii] = 0
 			newstrides[ii] = 0
@@ -186,7 +180,7 @@ pub fn (t Tensor) diag_view() Tensor {
 }
 
 pub fn (t Tensor) memory_into(order string) Tensor {
-	mut ret := Tensor{buffer: *f64(calloc(0))}
+	mut ret := Tensor{buffer: *f64(calloc(1))}
 	if order == 'F' {
 		ret = empty_fortran(t.shape)
 	} else if order == 'C' {
@@ -244,7 +238,6 @@ pub fn reshape(t Tensor, shape []int) Tensor {
 		// panic here
 	}
 
-	mut stride := 1
 	mut newstrides := [0].repeat(newshape.len)
 
 	if (t.flags["fortran"] && !t.flags["contiguous"]) {
@@ -291,8 +284,6 @@ pub fn (t Tensor) axes_into(order []int) Tensor {
 
 		i++
 	}
-	newstrides := t.strides.clone()
-	newshape := t.shape.clone()
 	
 	mut ii := 0
 	for ii < n {

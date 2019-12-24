@@ -1,21 +1,6 @@
 module num
 import tensor
-
-fn add_(a f64, b f64) f64 {
-	return a + b
-}
-
-fn subtract_(a f64, b f64) f64 {
-	return a - b
-}
-
-fn divide_(a f64, b f64) f64 {
-	return a / b
-}
-
-fn multiply_(a f64, b f64) f64 {
-	return a * b
-}
+import internal
 
 fn op(a tensor.Tensor, b tensor.Tensor, op fn(f64, f64)f64) tensor.Tensor {
 	ret := a.memory_into('C')
@@ -45,35 +30,35 @@ fn op_scalar(a tensor.Tensor, b f64, op fn(f64, f64)f64) tensor.Tensor {
 }
 
 pub fn add(a tensor.Tensor, b tensor.Tensor) tensor.Tensor {
-	return op(a, b, add_)
+	return op(a, b, internal.add_)
 }
 
 pub fn add_scalar(a tensor.Tensor, b f64) tensor.Tensor {
-	return op_scalar(a, b, add_)
+	return op_scalar(a, b, internal.add_)
 }
 
 pub fn subtract(a tensor.Tensor, b tensor.Tensor) tensor.Tensor {
-	return op(a, b, subtract_)
+	return op(a, b, internal.subtract_)
 }
 
 pub fn subtract_scalar(a tensor.Tensor, b f64) tensor.Tensor {
-	return op_scalar(a, b, subtract_)
+	return op_scalar(a, b, internal.subtract_)
 }
 
 pub fn divide(a tensor.Tensor, b tensor.Tensor) tensor.Tensor {
-	return op(a, b, divide_)
+	return op(a, b, internal.divide_)
 }
 
 pub fn divide_scalar(a tensor.Tensor, b f64) tensor.Tensor {
-	return op_scalar(a, b, divide_)
+	return op_scalar(a, b, internal.divide_)
 }
 
 pub fn multiply(a tensor.Tensor, b tensor.Tensor) tensor.Tensor {
-	return op(a, b, multiply_)
+	return op(a, b, internal.multiply_)
 }
 
 pub fn multiply_scalar(a tensor.Tensor, b f64) tensor.Tensor {
-	return op_scalar(a, b, divide_)
+	return op_scalar(a, b, internal.divide_)
 }
 
 // pub fn (a tensor.Tensor) sum_axis(axis int) tensor.Tensor {

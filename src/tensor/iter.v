@@ -12,13 +12,14 @@ struct NdIter {
 pub fn (iter mut NdIter) next() &f64 {
 	ret := iter.ptr
 	mut i := iter.dim
+	mut track := iter.track
 	for i >= 0 {
-		iter.track[i] += 1
+		track[i]++
 		shape_i := iter.shape[i]
 		stride_i := iter.strides[i]
 
-		if (iter.track[i] == iter.shape[i]) {
-			iter.track[i] = 0
+		if (track[i] == iter.shape[i]) {
+			track[i] = 0
 			iter.ptr -= (shape_i - 1) * stride_i
 			i--
 			continue
