@@ -28,3 +28,28 @@ fn (iter mut NdIter) next() &f64 {
 	}
 	return ret
 }
+
+struct AxesIter {
+	pub mut:
+		ptr &f64
+		shape []int
+		strides []int
+		inc int
+		tmp Tensor
+		axis int
+}
+
+pub fn (iter mut AxesIter) next() Tensor {
+	ret := iter.tmp
+	iter.ptr += iter.inc
+	iter.tmp = Tensor{
+		buffer: iter.ptr
+		shape: ret.shape
+		strides: iter.strides
+		flags: ret.flags
+		ndims: ret.ndims
+		size: ret.size
+		itemsize: ret.itemsize
+	}
+	return ret
+}

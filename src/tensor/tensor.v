@@ -4,7 +4,7 @@ import strings
 struct Tensor {
 	itemsize int
 	buffer &f64
-	pub:
+	pub mut:
 		shape []int
 		strides []int
 		ndims int
@@ -45,6 +45,16 @@ fn all_flags() map[string]bool {
 		"contiguous": true
 		"fortran": true
 		"owndata": true
+		"write": true
+	}
+	return m
+}
+
+fn no_flags() map[string]bool {
+	m := {
+		"contiguous": false
+		"fortran": false
+		"owndata": false
 		"write": true
 	}
 	return m
@@ -217,6 +227,40 @@ fn (t Tensor) flat_iter() NdIter {
 	}
 }
 
+fn delete_at(a []int, index int) []int {
+	mut ret := []int
+	for i, d in a {
+		if (i != index) {
+			ret << d
+		}
+	}
+	return ret
+}
+
+pub fn (t Tensor) axis_iter(axis int) AxesIter {
+	shape := delete_at(t.shape.clone(), axis)
+	strides := delete_at(t.strides.clone(), axis)
+	ptr := t.buffer
+	inc := t.strides[axis]
+	tmp := Tensor{
+		shape: shape
+		strides: strides
+		buffer: ptr
+		size: shape_size(shape)
+		ndims: shape.len
+		flags: no_flags()
+	}
+
+	return AxesIter{
+		ptr: ptr
+		shape: shape
+		strides: strides
+		tmp: tmp
+		inc: inc
+		axis: axis
+	}
+}
+
 pub fn (t Tensor) str() string {
 	mut printer := init_printer(t)
 	return printer.print()
@@ -335,5 +379,184 @@ pub fn seq(n int) Tensor {
 		ii++
 	}
 	return ret
+}
+
+fn add_(a f64, b f64) f64 {
+	return a + b
+}
+
+fn subtract_(a f64, b f64) f64 {
+	return a - b
+}
+
+fn divide_(a f64, b f64) f64 {
+	return a / b
+}
+
+fn multiply_(a f64, b f64) f64 {
+	return a * b
+}
+
+fn op(a Tensor, b Tensor, op fn(f64, f64)f64) Tensor {
+	ret := a.memory_into('C')
+	mut ret_iter := ret.flat_iter()
+	mut rhs_iter := b.flat_iter()
+	mut ii := 0
+
+	for ii < a.size {
+		mut ptr := ret_iter.next()
+		*ptr = op(*ptr, *rhs_iter.next())
+		ii++
+	}
+	return ret
+}
+
+fn op_scalar(a Tensor, b f64, op fn(f64, f64)f64) Tensor {
+	ret := a.memory_into('C')
+	mut ret_iter := ret.flat_iter()
+	mut ii := 0
+
+	for ii < a.size {
+		mut ptr := ret_iter.next()
+		*ptr = op(*ptr, b)
+		ii++
+	}
+	return ret
+}
+
+pub fn add(a Tensor, b Tensor) Tensor {
+	return op(a, b, add_)
+}
+
+pub fn add_scalar(a Tensor, b f64) Tensor {
+	return op_scalar(a, b, add_)
+}
+
+pub fn subtract(a Tensor, b Tensor) Tensor {
+	return op(a, b, subtract_)
+}
+
+pub fn subtract_scalar(a Tensor, b f64) Tensor {
+	return op_scalar(a, b, subtract_)
+}
+
+pub fn divide(a Tensor, b Tensor) Tensor {
+	return op(a, b, divide_)
+}
+
+pub fn divide_scalar(a Tensor, b f64) Tensor {
+	return op_scalar(a, b, divide_)
+}
+
+pub fn multiply(a Tensor, b Tensor) Tensor {
+	return op(a, b, multiply_)
+}
+
+pub fn multiply_scalar(a Tensor, b f64) Tensor {
+	return op_scalar(a, b, divide_)
+}
+
+pub fn (t Tensor) shape_into(shape []int) Tensor {
+	mut ret := t.dup_view()
+	mut newshape := shape.clone()
+	mut newsize := 1
+	cur_size := t.size
+	mut autosize := -1
+
+	for i, val in newshape {
+		if (val < 0) {
+			if (autosize >= 0) {
+				// panic here
+			}
+			autosize = i
+		} else {
+			newsize *= val
+		}
+	}
+
+	if (autosize >= 0) {
+		newshape = newshape.clone()
+		newshape[autosize] = newsize/cur_size
+		newsize *= newshape[autosize]
+	}
+
+	if (newsize != cur_size) {
+		// panic here
+	}
+
+	mut stride := 1
+	mut newstrides := [0].repeat(newshape.len)
+
+	if (t.flags["fortran"] && !t.flags["contiguous"]) {
+		newstrides = fstrides(newshape)
+	} else {
+		newstrides = cstrides(newshape)
+	}
+
+	if (t.flags["contiguous"] || t.flags["fortran"]) {
+		ret.shape = newshape
+		ret.strides = newstrides
+		ret.ndims = newshape.len
+	} else {
+		ret = t.memory_into('C')
+		ret.shape = newshape
+		ret.strides = newstrides
+		ret.ndims = newshape.len
+	}
+	ret.update_flags(all_flags())
+	return ret
+}
+
+pub fn (t Tensor) axes_into(order []int) Tensor {
+	mut ret := t.dup_view()
+	n := order.len
+	if (n != t.ndims) {
+		// panic here
+	}
+	mut permutation := [0].repeat(32)
+	mut reverse_permutation := [-1].repeat(32)
+
+	mut i := 0
+	for i < n {
+		mut axis := order[i]
+		if (axis < 0) { axis = t.ndims + axis }
+		if (axis < 0 || axis >= t.ndims) {
+			// panic here
+		}
+		if (reverse_permutation[axis] == -1) {
+			// panic here
+		}
+		reverse_permutation[i] = i
+		permutation[i] = axis
+
+		i++
+	}
+	newstrides := t.strides.clone()
+	newshape := t.shape.clone()
+	
+	mut ii := 0
+	for ii < n {
+		ret.shape[ii] = t.shape[permutation[ii]]
+		ret.strides[ii] = t.strides[permutation[ii]]
+		ii++
+	}
+	ret.update_flags(all_flags())
+	return ret
+}
+
+pub fn (a Tensor) sum_axis(axis int) Tensor {
+	mut ai := a.axis_iter(axis)
+	mut ii := 1
+	mut ret := ai.next()
+	for ii < a.shape[axis] {
+		ret = add(ret, ai.next())
+		ii++
+	}
+	return ret
+}
+
+pub fn (a Tensor) mean_axis(axis int) Tensor {
+	ret := a.sum_axis(axis)
+	return divide_scalar(ret, a.shape[axis])
 }
 
