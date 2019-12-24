@@ -1,5 +1,6 @@
 module num
 import tensor
+import strings
 
 pub fn concatenate(ts []tensor.Tensor, axis int) tensor.Tensor {
 	mut newshape := ts[0].shape.clone()
@@ -178,7 +179,7 @@ fn recursor(a tensor.Tensor, index []int, hanging_indent string, curr_width int,
 		nested := recursor(a, lidx, next_hanging_indent, next_width, summary_insert, edge_items, separator)
 		s += hanging_indent + nested
 	}
-	return "[" + s + "]"
+	return "[" + s[hanging_indent.len..] + "]"
 }
 
 fn format_array(a tensor.Tensor, line_width int, next_line_prefix string, separator string, edge_items int, summary_insert string) string {

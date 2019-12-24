@@ -19,7 +19,7 @@ pub fn (t Tensor) get(idx []int) f64 {
 		if idxer < 0 {
 			idxer += t.shape[i]
 		}
-		offset += idx[i] * t.strides[i]
+		offset += idxer * t.strides[i]
 		i++
 	}
 	return *(t.buffer + offset)
