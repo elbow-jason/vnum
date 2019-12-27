@@ -1,6 +1,5 @@
 module num
 import tensor
-import strings
 
 pub fn concatenate(ts []tensor.Tensor, axis int) tensor.Tensor {
 	mut newshape := ts[0].shape.clone()
@@ -81,12 +80,12 @@ fn extend_line(s string, line string, word string, line_width int, next_line_pre
 	return [sn, ln]
 }
 
-fn recursor(a tensor.Tensor, index []int, hanging_indent string, curr_width int, summary_insert string, edge_items int, separator string) string {
+fn recursor(a tensor.Tensor, index []int, hanging_indent string, curr_width int, summary_insert string, edge_items int, separator string, max_len int) string {
 	axis := index.len
 	axes_left := a.ndims - axis
 
 	if axes_left == 0 {
-		return a.get(index).str()
+		return rjust(format_float(a.get(index), false), max_len)
 	}
 
 	next_hanging_indent := hanging_indent + " "
@@ -113,7 +112,7 @@ fn recursor(a tensor.Tensor, index []int, hanging_indent string, curr_width int,
 		for lii < leading_items {
 			mut nidx := index.clone()
 			nidx << lii
-			word := recursor(a, nidx, next_hanging_indent, next_width, summary_insert, edge_items, separator)
+			word := recursor(a, nidx, next_hanging_indent, next_width, summary_insert, edge_items, separator, max_len)
 			ret := extend_line(s, line, word, elem_width, hanging_indent)
 			s = ret[0]
 			line = ret[1]
@@ -132,7 +131,7 @@ fn recursor(a tensor.Tensor, index []int, hanging_indent string, curr_width int,
 		for tii >= 2 {
 			mut tidx := index.clone()
 			tidx << -1 * tii
-			word := recursor(a, tidx, next_hanging_indent, next_width, summary_insert, edge_items, separator)
+			word := recursor(a, tidx, next_hanging_indent, next_width, summary_insert, edge_items, separator, max_len)
 			ret := extend_line(s, line, word, elem_width, hanging_indent)
 			s = ret[0]
 			line = ret[1]
@@ -142,7 +141,7 @@ fn recursor(a tensor.Tensor, index []int, hanging_indent string, curr_width int,
 
 		mut lidx := index.clone()
 		lidx << -1
-		word := recursor(a, lidx, next_hanging_indent, next_width, summary_insert, edge_items, separator)
+		word := recursor(a, lidx, next_hanging_indent, next_width, summary_insert, edge_items, separator, max_len)
 		ret := extend_line(s, line, word, elem_width, hanging_indent)
 		s = ret[0]
 		line = ret[1]
@@ -157,7 +156,7 @@ fn recursor(a tensor.Tensor, index []int, hanging_indent string, curr_width int,
 		for lii < leading_items {
 			mut nidx := index.clone()
 			nidx << lii
-			nested := recursor(a, nidx, next_hanging_indent, next_width, summary_insert, edge_items, separator)
+			nested := recursor(a, nidx, next_hanging_indent, next_width, summary_insert, edge_items, separator, max_len)
 			lii++
 			s += hanging_indent + nested + line_sep
 		}
@@ -170,20 +169,20 @@ fn recursor(a tensor.Tensor, index []int, hanging_indent string, curr_width int,
 		for tii >= 2 {
 			mut tidx := index.clone()
 			tidx << -1 * tii
-			nested := recursor(a, tidx, next_hanging_indent, next_width, summary_insert, edge_items, separator)
+			nested := recursor(a, tidx, next_hanging_indent, next_width, summary_insert, edge_items, separator, max_len)
 			s += hanging_indent + nested + line_sep
 			tii--
 		}
 		mut lidx := index.clone()
 		lidx << -1
-		nested := recursor(a, lidx, next_hanging_indent, next_width, summary_insert, edge_items, separator)
+		nested := recursor(a, lidx, next_hanging_indent, next_width, summary_insert, edge_items, separator, max_len)
 		s += hanging_indent + nested
 	}
 	return "[" + s[hanging_indent.len..] + "]"
 }
 
-fn format_array(a tensor.Tensor, line_width int, next_line_prefix string, separator string, edge_items int, summary_insert string) string {
-	return recursor(a, [], next_line_prefix, line_width, summary_insert, edge_items, separator)
+fn format_array(a tensor.Tensor, line_width int, next_line_prefix string, separator string, edge_items int, summary_insert string, max_len int) string {
+	return recursor(a, [], next_line_prefix, line_width, summary_insert, edge_items, separator, max_len)
 }
 
 pub fn array2string(a tensor.Tensor, separator string, prefix string) string {
@@ -193,7 +192,32 @@ pub fn array2string(a tensor.Tensor, separator string, prefix string) string {
 		summary_insert = "..."
 		data = leading_trailing(a, 3, [], [])
 	}
-	mut next_line_prefix := " "
+	max_len := max_str_len(data)
+	mut next_line_prefix := ""
 	next_line_prefix += " ".repeat(prefix.len)
-	return format_array(a, 75, next_line_prefix, separator, 3, summary_insert)
+	return format_array(a, 75, next_line_prefix, separator, 3, summary_insert, max_len)
+}
+
+fn format_float(v f64, notation bool) string {
+	if notation {
+		return v.strsci(3)
+	} else {
+		buf := malloc(8 * 5 + 1) // TODO
+		C.sprintf(charptr(buf), '%.3f', v)
+		return tos(buf, vstrlen(buf))
+	}
+}
+
+fn max_str_len(a tensor.Tensor) int {
+	mx := max(a)
+	return format_float(mx, false).len
+}
+
+fn rjust(s string, n int) string {
+	diff := n - s.len
+	if diff > 0 {
+		return " ".repeat(diff) + s
+	} else {
+		return s
+	}
 }
