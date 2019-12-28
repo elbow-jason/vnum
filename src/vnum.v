@@ -2,9 +2,7 @@
 import num
 
 fn main() {
-	t := num.seq(12).reshape([3, 2, 2]).transpose([2, 0, 1])
+	t := num.seq(3)
 	println(t)
-	println(num.divide(t, t))
-	a := num.sum_axis(t, 1)
-	println(a)
+	println(num.broadcast_to(t, [3, 3, 3]))
 }
