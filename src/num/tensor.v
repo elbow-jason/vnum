@@ -278,7 +278,8 @@ pub fn (t Tensor) reshape(shape []int) Tensor {
 	for i, val in newshape {
 		if (val < 0) {
 			if (autosize >= 0) {
-				// panic here}
+				panic('Only one dimension can be autosized')
+			}
 			autosize = i
 		}
 		else {
@@ -291,7 +292,8 @@ pub fn (t Tensor) reshape(shape []int) Tensor {
 		newsize *= newshape[autosize]
 	}
 	if (newsize != cur_size) {
-		// panic here}
+		panic('Cannot reshape')
+	}
 	mut newstrides := [0].repeat(newshape.len)
 	if (t.flags['fortran'] && !t.flags['contiguous']) {
 		newstrides = fstrides(newshape)
@@ -318,7 +320,8 @@ pub fn (t Tensor) transpose(order []int) Tensor {
 	mut ret := t.dup_view()
 	n := order.len
 	if (n != t.ndims) {
-		// panic here}
+		panic('Bad number of dimensions')
+	}
 	mut permutation := [0].repeat(32)
 	mut reverse_permutation := [-1].repeat(32)
 	mut i := 0
@@ -328,9 +331,11 @@ pub fn (t Tensor) transpose(order []int) Tensor {
 			axis = t.ndims + axis
 		}
 		if (axis < 0 || axis >= t.ndims) {
-			// panic here}
+			panic('Bad permutation')
+		}
 		if (reverse_permutation[axis] == -1) {
-			// panic here}
+			panic('Bad permutation')
+		}
 		reverse_permutation[i] = i
 		permutation[i] = axis
 		i++
