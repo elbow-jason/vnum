@@ -1,18 +1,34 @@
 Vnum is in active development, and contributions are always welcome!  Progress will not be that useful until generics are implemented in v.
 
 ```v
+import num
+
 fn main() {
-	t := from_shape([2, 2, 2])
-	t.set([0, 1, 1], 2.0)
-	t.set([1, 0, 0], 3.14)
+	t := num.seq(12).reshape([3, 2, 2]).transpose([2, 0, 1])
 	println(t)
+	println(num.divide(t, t))
+	a := num.sum_axis(t, 1)
+	println(a)
 }
 ```
 
 ```v
-Tensor([[[0.000000, 0.000000],
-         [0.000000, 2.000000]],
+[[[ 0.000,  2.000],
+  [ 4.000,  6.000],
+  [ 8.000, 10.000]],
 
-        [[3.140000, 0.000000],
-         [0.000000, 0.000000]]]
+ [[ 1.000,  3.000],
+  [ 5.000,  7.000],
+  [ 9.000, 11.000]]]
+
+[[[-nan, 1.000],
+  [1.000, 1.000],
+  [1.000, 1.000]],
+
+ [[1.000, 1.000],
+  [1.000, 1.000],
+  [1.000, 1.000]]]
+  
+[[12.000, 18.000],
+ [15.000, 21.000]]
 ```
