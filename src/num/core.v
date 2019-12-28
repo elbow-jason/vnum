@@ -98,3 +98,51 @@ pub fn linspace(start f64, stop f64, num int) Tensor {
 	y.set_at([y.shape[0] - 1], stop)
 	return y
 }
+
+fn tril_inplace_offset(t Tensor, offset int) {
+	mut i := 0
+	for i < t.shape[0] {
+		mut j := 0
+		for j < t.shape[1] {
+			if i < j - offset {
+				t.set_at([i, j], 0)
+			}
+			j++
+		}
+		i++
+	}
+}
+
+fn triu_inplace_offset(t Tensor, offset int) {
+	mut i := 0
+	for i < t.shape[0] {
+		mut j := 0
+		for j < t.shape[1] {
+			if i > j - offset {
+				t.set_at([i, j], 0)
+			}
+			j++
+		}
+		i++
+	}
+}
+
+pub fn tril(t Tensor) Tensor {
+	ret := t.copy('C')
+	tril_inplace_offset(ret, 0)
+	return ret
+}
+
+pub fn tril_inpl(t Tensor) {
+	tril_inplace_offset(t, 0)
+}
+
+pub fn triu(t Tensor) Tensor {
+	ret := t.copy('C')
+	triu_inplace_offset(ret, 0)
+	return ret
+}
+
+pub fn triu_inpl(t Tensor) {
+	triu_inplace_offset(t, 0)
+}

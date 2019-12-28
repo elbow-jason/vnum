@@ -349,3 +349,25 @@ pub fn (t Tensor) transpose(order []int) Tensor {
 	ret.update_flags(all_flags())
 	return ret
 }
+
+fn from_array(a []f64, shape []int) Tensor {
+	data := a.clone().data
+	size := shape_size(shape)
+	if size != a.len {
+		panic("Cannot fit array into $shape")
+	}
+	return Tensor{
+		buffer: data,
+		size: size,
+		ndims: shape.len,
+		flags: default_flags('C'),
+		itemsize: sizeof(f64),
+		strides: cstrides(shape),
+		shape: shape
+	}
+}
+
+pub fn from_f32(a []f32, shape []int) Tensor {
+	ret := a.map(f64(it))
+	return from_array(ret, shape)
+}
