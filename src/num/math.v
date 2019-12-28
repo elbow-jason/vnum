@@ -35,7 +35,6 @@ fn op(a Tensor, b Tensor, op fn(f64, f64)f64) Tensor {
 	mut ret_iter := ret.flat_iter()
 	mut rhs_iter := b.flat_iter()
 	mut ii := 0
-
 	for ii < a.size {
 		mut ptr := ret_iter.next()
 		*ptr = op(*ptr, *rhs_iter.next())
@@ -48,7 +47,6 @@ fn op_scalar(a Tensor, b f64, op fn(f64, f64)f64) Tensor {
 	ret := a.copy('C')
 	mut ret_iter := ret.flat_iter()
 	mut ii := 0
-
 	for ii < a.size {
 		mut ptr := ret_iter.next()
 		*ptr = op(*ptr, b)
@@ -86,7 +84,7 @@ pub fn multiply(a Tensor, b Tensor) Tensor {
 }
 
 pub fn multiply_scalar(a Tensor, b f64) Tensor {
-	return op_scalar(a, b, divide_)
+	return op_scalar(a, b, multiply_)
 }
 
 pub fn minimum(a Tensor, b Tensor) Tensor {

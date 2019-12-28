@@ -2,7 +2,6 @@
 import num
 
 fn main() {
-	t := num.seq(3)
+	t := num.linspace(0.0, 5.0, 25)
 	println(t)
-	println(num.broadcast_to(t, [3, 3, 3]))
 }

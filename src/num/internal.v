@@ -5,13 +5,11 @@ fn cstrides(shape []int) []int {
 	mut ii := 0
 	ndims := shape.len
 	mut strides := [0].repeat(ndims)
-
 	for ii < ndims {
 		strides[ndims - ii - 1] = sz
 		sz *= shape[ndims - ii - 1]
 		ii++
 	}
-
 	return strides
 }
 
@@ -20,13 +18,11 @@ fn fstrides(shape []int) []int {
 	mut ii := 0
 	ndims := shape.len
 	mut strides := [0].repeat(ndims)
-
 	for ii < ndims {
 		strides[ii] = sz
 		sz *= shape[ii]
 		ii++
 	}
-
 	return strides
 }
 
@@ -72,13 +68,12 @@ fn assert_shape_off_axis(ts []Tensor, axis int, shape []int) []int {
 	mut retshape := shape.clone()
 	for t in ts {
 		if (t.shape.len != retshape.len) {
-			panic("All inputs must share the same number of axes")
+			panic('All inputs must share the same number of axes')
 		}
-
 		mut i := 0
 		for i < shape.len {
 			if (i != axis) && (t.shape[i] != shape[i]) {
-				panic("All inputs must share a shape off axis")
+				panic('All inputs must share a shape off axis')
 			}
 			i++
 		}

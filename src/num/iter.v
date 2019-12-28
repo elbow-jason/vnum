@@ -1,12 +1,12 @@
 module num
 
 struct NdIter {
-	pub mut:
-		ptr &f64
-		shape []int
-		strides []int
-		track []int
-		dim int
+pub mut:
+	ptr     &f64
+	shape   []int
+	strides []int
+	track   []int
+	dim     int
 }
 
 pub fn (iter mut NdIter) next() &f64 {
@@ -17,7 +17,6 @@ pub fn (iter mut NdIter) next() &f64 {
 		track[i]++
 		shape_i := iter.shape[i]
 		stride_i := iter.strides[i]
-
 		if (track[i] == iter.shape[i]) {
 			track[i] = 0
 			iter.ptr -= (shape_i - 1) * stride_i
@@ -31,19 +30,19 @@ pub fn (iter mut NdIter) next() &f64 {
 }
 
 struct AxesIter {
-	pub mut:
-		ptr &f64
-		shape []int
-		strides []int
-		inc int
-		tmp Tensor
-		axis int
+pub mut:
+	ptr     &f64
+	shape   []int
+	strides []int
+	inc     int
+	tmp     Tensor
+	axis    int
 }
 
 pub fn (iter mut AxesIter) next() Tensor {
 	ret := iter.tmp
 	iter.ptr += iter.inc
-	iter.tmp = Tensor{
+	iter.tmp = Tensor {
 		buffer: iter.ptr
 		shape: ret.shape
 		strides: iter.strides

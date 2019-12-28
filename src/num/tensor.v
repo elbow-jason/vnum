@@ -1,25 +1,25 @@
 module num
 
 pub struct Tensor {
-	pub mut:
-		shape []int
-		strides []int
-		ndims int
-		size int
-		flags map[string]bool
-	pub:
-		itemsize int
-		buffer &f64
+pub mut:
+	shape    []int
+	strides  []int
+	ndims    int
+	size     int
+	flags    map[string]bool
+pub:
+	itemsize int
+	buffer   &f64
 }
 
 pub fn allocate_tensor(shape []int) Tensor {
 	size := shape_size(shape)
-	return Tensor{
-		shape: shape,
-		strides: cstrides(shape),
-		ndims: shape.len,
-		size: size,
-		flags: default_flags('C'),
+	return Tensor {
+		shape: shape
+		strides: cstrides(shape)
+		ndims: shape.len
+		size: size
+		flags: default_flags('C')
 		itemsize: sizeof(f64)
 		buffer: *f64(calloc(size * sizeof(f64)))
 	}
@@ -27,15 +27,15 @@ pub fn allocate_tensor(shape []int) Tensor {
 
 pub fn allocate_tensor_fortran(shape []int) Tensor {
 	size := shape_size(shape)
-	return Tensor{
-		shape: shape,
-		strides: fstrides(shape),
-		ndims: shape.len,
-		size: size,
-		flags: default_flags('F'),
+	return Tensor {
+		shape: shape
+		strides: fstrides(shape)
+		ndims: shape.len
+		size: size
+		flags: default_flags('F')
 		itemsize: sizeof(f64)
 		buffer: *f64(calloc(size * sizeof(f64)))
-	}	
+	}
 }
 
 fn offset(t Tensor, idx []int) int {
@@ -64,10 +64,8 @@ pub fn (t Tensor) get(idx1 []int, idx2 []int) Tensor {
 	mut newstrides := t.strides.clone()
 	newflags := default_flags('C')
 	mut ii := 0
-
 	idx_start := pad_with_zeros(idx1, t.ndims)
 	idx_end := pad_with_max(idx2, t.shape, t.ndims)
-
 	mut idx := []int
 	for ii < t.ndims {
 		mut fi := idx_start[ii]
@@ -82,7 +80,8 @@ pub fn (t Tensor) get(idx1 []int, idx2 []int) Tensor {
 			newshape[ii] = 0
 			newstrides[ii] = 0
 			idx << fi
-		} else {
+		}
+		else {
 			offset := li - fi
 			newshape[ii] = offset
 			idx << fi
@@ -97,7 +96,7 @@ pub fn (t Tensor) get(idx1 []int, idx2 []int) Tensor {
 		ptr += t.strides[i] * idx[i]
 		i++
 	}
-	mut ret := Tensor{
+	mut ret := Tensor {
 		shape: newshape_
 		strides: newstrides_
 		ndims: newshape_.len
@@ -114,7 +113,6 @@ pub fn (t Tensor) set(idx1 []int, idx2 []int, val Tensor) {
 	mut ia := slice.flat_iter()
 	mut ib := val.flat_iter()
 	mut i := 0
-	
 	for i < slice.size {
 		mut ptr := ia.next()
 		*ptr = *ib.next()
@@ -123,34 +121,45 @@ pub fn (t Tensor) set(idx1 []int, idx2 []int, val Tensor) {
 }
 
 fn (t Tensor) is_fortran_contiguous() bool {
-	if (t.ndims == 0) { return true }
-	if (t.ndims == 1) { return t.shape[0] == 1 || t.strides[0] == 1}
-
+	if (t.ndims == 0) {
+		return true
+	}
+	if (t.ndims == 1) {
+		return t.shape[0] == 1 || t.strides[0] == 1
+	}
 	mut sd := 1
 	mut i := 0
-
 	for i < t.ndims {
 		dim := t.shape[i]
-		if (dim == 0) { return true }
-		if (t.strides[i] != sd) { return false }
+		if (dim == 0) {
+			return true
+		}
+		if (t.strides[i] != sd) {
+			return false
+		}
 		sd *= dim
 		i++
 	}
-
 	return true
 }
 
 fn (t Tensor) is_contiguous() bool {
-	if (t.ndims == 0) { return true }
-	if (t.ndims == 1) { return t.shape[0] == 1 || t.strides[0] == 1 }
-
+	if (t.ndims == 0) {
+		return true
+	}
+	if (t.ndims == 1) {
+		return t.shape[0] == 1 || t.strides[0] == 1
+	}
 	mut sd := 1
 	mut i := t.ndims - 1
-
 	for i > 0 {
 		dim := t.shape[i]
-		if (dim == 0) { return true }
-		if (t.strides[i] != sd) { return false }
+		if (dim == 0) {
+			return true
+		}
+		if (t.strides[i] != sd) {
+			return false
+		}
 		sd *= dim
 		i--
 	}
@@ -158,24 +167,26 @@ fn (t Tensor) is_contiguous() bool {
 }
 
 fn (t mut Tensor) update_flags(d map[string]bool) {
-	if (d["fortran"] && t.flags["fortran"]) {
+	if (d['fortran'] && t.flags['fortran']) {
 		if t.is_fortran_contiguous() {
-			t.flags["fortran"] = true
+			t.flags['fortran'] = true
 			if t.ndims > 1 {
-				t.flags["contiguous"] = false
+				t.flags['contiguous'] = false
 			}
-		} else {
-			t.flags["fortran"] = false
+		}
+		else {
+			t.flags['fortran'] = false
 		}
 	}
-	if (d["contiguous"] && t.flags["contiguous"]) {
+	if (d['contiguous'] && t.flags['contiguous']) {
 		if t.is_contiguous() {
-			t.flags["contiguous"] = true
+			t.flags['contiguous'] = true
 			if t.ndims > 1 {
-				t.flags["fortran"] = false
+				t.flags['fortran'] = false
 			}
-		} else {
-			t.flags["contiguous"] = false
+		}
+		else {
+			t.flags['contiguous'] = false
 		}
 	}
 }
@@ -184,7 +195,7 @@ pub fn (t Tensor) flat_iter() NdIter {
 	ptr := t.buffer
 	shape := t.shape
 	dim := t.ndims - 1
-	track := [0].repeat(dim+1)
+	track := [0].repeat(dim + 1)
 	strides := t.strides
 	return NdIter{
 		ptr: ptr
@@ -200,7 +211,7 @@ pub fn (t Tensor) axis_iter(axis int) AxesIter {
 	strides := delete_at(t.strides.clone(), axis)
 	ptr := t.buffer
 	inc := t.strides[axis]
-	tmp := Tensor{
+	tmp := Tensor {
 		shape: shape
 		strides: strides
 		buffer: ptr
@@ -208,7 +219,6 @@ pub fn (t Tensor) axis_iter(axis int) AxesIter {
 		ndims: shape.len
 		flags: no_flags()
 	}
-
 	return AxesIter{
 		ptr: ptr
 		shape: shape
@@ -220,14 +230,17 @@ pub fn (t Tensor) axis_iter(axis int) AxesIter {
 }
 
 pub fn (t Tensor) str() string {
-	return array2string(t, ", ", "")
+	return array2string(t, ', ', '')
 }
 
 pub fn (t Tensor) copy(order string) Tensor {
-	mut ret := Tensor{buffer: *f64(calloc(1))}
+	mut ret := Tensor {
+		buffer: *f64(calloc(1))
+	}
 	if order == 'F' {
 		ret = allocate_tensor_fortran(t.shape)
-	} else if order == 'C' {
+	}
+	else if order == 'C' {
 		ret = allocate_tensor(t.shape)
 	}
 	mut ia := ret.flat_iter()
@@ -244,9 +257,8 @@ pub fn (t Tensor) copy(order string) Tensor {
 
 pub fn (t Tensor) dup_view() Tensor {
 	mut newflags := dup_flags(t.flags)
-	newflags["owndata"] = false
-
-	ret := Tensor{
+	newflags['owndata'] = false
+	ret := Tensor {
 		shape: t.shape.clone()
 		strides: t.strides.clone()
 		buffer: t.buffer
@@ -263,41 +275,36 @@ pub fn (t Tensor) reshape(shape []int) Tensor {
 	mut newsize := 1
 	cur_size := t.size
 	mut autosize := -1
-
 	for i, val in newshape {
 		if (val < 0) {
 			if (autosize >= 0) {
-				// panic here
-			}
+				// panic here}
 			autosize = i
-		} else {
+		}
+		else {
 			newsize *= val
 		}
 	}
-
 	if (autosize >= 0) {
 		newshape = newshape.clone()
-		newshape[autosize] = newsize/cur_size
+		newshape[autosize] = newsize / cur_size
 		newsize *= newshape[autosize]
 	}
-
 	if (newsize != cur_size) {
-		// panic here
-	}
-
+		// panic here}
 	mut newstrides := [0].repeat(newshape.len)
-
-	if (t.flags["fortran"] && !t.flags["contiguous"]) {
+	if (t.flags['fortran'] && !t.flags['contiguous']) {
 		newstrides = fstrides(newshape)
-	} else {
+	}
+	else {
 		newstrides = cstrides(newshape)
 	}
-
-	if (t.flags["contiguous"] || t.flags["fortran"]) {
+	if (t.flags['contiguous'] || t.flags['fortran']) {
 		ret.shape = newshape
 		ret.strides = newstrides
 		ret.ndims = newshape.len
-	} else {
+	}
+	else {
 		ret = t.copy('C')
 		ret.shape = newshape
 		ret.strides = newstrides
@@ -311,27 +318,23 @@ pub fn (t Tensor) transpose(order []int) Tensor {
 	mut ret := t.dup_view()
 	n := order.len
 	if (n != t.ndims) {
-		// panic here
-	}
+		// panic here}
 	mut permutation := [0].repeat(32)
 	mut reverse_permutation := [-1].repeat(32)
-
 	mut i := 0
 	for i < n {
 		mut axis := order[i]
-		if (axis < 0) { axis = t.ndims + axis }
+		if (axis < 0) {
+			axis = t.ndims + axis
+		}
 		if (axis < 0 || axis >= t.ndims) {
-			// panic here
-		}
+			// panic here}
 		if (reverse_permutation[axis] == -1) {
-			// panic here
-		}
+			// panic here}
 		reverse_permutation[i] = i
 		permutation[i] = axis
-
 		i++
 	}
-	
 	mut ii := 0
 	for ii < n {
 		ret.shape[ii] = t.shape[permutation[ii]]
