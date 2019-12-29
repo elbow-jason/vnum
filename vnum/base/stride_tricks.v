@@ -1,4 +1,4 @@
-module num
+module base
 
 fn broadcastable(arr Tensor, other Tensor) []int {
 	sz := arr.shape.len

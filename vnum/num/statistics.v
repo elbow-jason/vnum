@@ -1,6 +1,8 @@
 module num
 
-pub fn max(a Tensor) f64 {
+import base
+
+pub fn max(a base.Tensor) f64 {
 	mut mx := 0.0
 	mut iter := a.flat_iter()
 	mut i := 0
@@ -17,7 +19,7 @@ pub fn max(a Tensor) f64 {
 	return mx
 }
 
-pub fn min(a Tensor) f64 {
+pub fn min(a base.Tensor) f64 {
 	mut mn := 0.0
 	mut iter := a.flat_iter()
 	mut i := 0
@@ -34,7 +36,7 @@ pub fn min(a Tensor) f64 {
 	return mn
 }
 
-pub fn sum_axis(a Tensor, axis int) Tensor {
+pub fn sum_axis(a base.Tensor, axis int) base.Tensor {
 	mut ai := a.axis_iter(axis)
 	mut ii := 1
 	mut ret := ai.next()
@@ -45,12 +47,12 @@ pub fn sum_axis(a Tensor, axis int) Tensor {
 	return ret
 }
 
-pub fn mean_axis(a Tensor, axis int) Tensor {
+pub fn mean_axis(a base.Tensor, axis int) base.Tensor {
 	ret := sum_axis(a, axis)
 	return divide_scalar(ret, a.shape[axis])
 }
 
-pub fn max_axis(a Tensor, axis int) Tensor {
+pub fn max_axis(a base.Tensor, axis int) base.Tensor {
 	mut ai := a.axis_iter(axis)
 	mut ii := 1
 	mut ret := ai.next()
@@ -61,7 +63,7 @@ pub fn max_axis(a Tensor, axis int) Tensor {
 	return ret
 }
 
-pub fn min_axis(a Tensor, axis int) Tensor {
+pub fn min_axis(a base.Tensor, axis int) base.Tensor {
 	mut ai := a.axis_iter(axis)
 	mut ii := 1
 	mut ret := ai.next()
@@ -70,4 +72,8 @@ pub fn min_axis(a Tensor, axis int) Tensor {
 		ii++
 	}
 	return ret
+}
+
+fn squash_warning_stats() {
+	base.allocate_tensor([1])
 }

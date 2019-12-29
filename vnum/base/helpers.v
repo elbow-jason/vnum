@@ -1,4 +1,4 @@
-module num
+module base
 
 fn cstrides(shape []int) []int {
 	mut sz := 1

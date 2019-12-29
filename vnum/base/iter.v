@@ -1,4 +1,4 @@
-module num
+module base
 
 struct NdIter {
 pub mut:

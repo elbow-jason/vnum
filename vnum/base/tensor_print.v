@@ -1,4 +1,22 @@
-module num
+module base
+
+pub fn concatenate(ts []Tensor, axis int) Tensor {
+	mut newshape := ts[0].shape.clone()
+	newshape[axis] = 0
+	newshape = assert_shape_off_axis(ts, axis, newshape)
+	ret := allocate_tensor(newshape)
+	mut lo := [0].repeat(newshape.len)
+	mut hi := newshape.clone()
+	hi[axis] = 0
+	for t in ts {
+		if t.shape[axis] != 0 {
+			hi[axis] += t.shape[axis]
+			ret.set(lo, hi, t)
+			lo[axis] = hi[axis]
+		}
+	}
+	return ret
+}
 
 pub fn leading_trailing(a Tensor, edgeitems int, lo []int, hi []int) Tensor {
 	axis := lo.len
@@ -156,8 +174,18 @@ fn format_float(v f64, notation bool) string {
 }
 
 fn max_str_len(a Tensor) int {
-	mx := max(a)
-	return format_float(mx, false).len
+	mut iter := a.flat_iter()
+	mut i := 0
+	mut mx := 0
+	for i < a.size {
+		ptr := *iter.next()
+		val := format_float(ptr, false)
+		if val.len > mx {
+			mx = val.len
+		}
+		i++
+	}
+	return mx
 }
 
 fn rjust(s string, n int) string {
