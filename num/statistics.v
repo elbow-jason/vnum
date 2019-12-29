@@ -36,6 +36,32 @@ pub fn min(a base.Tensor) f64 {
 	return mn
 }
 
+pub fn sum(a base.Tensor) f64 {
+	mut res := 0.0
+	mut iter := a.flat_iter()
+	mut i := 0
+	for i < a.size {
+		res += *iter.next()
+		i++
+	}
+	return res
+}
+
+pub fn prod(a base.Tensor) f64 {
+	mut res := 0.0
+	mut iter := a.flat_iter()
+	mut i := 0
+	for i < a.size {
+		res *= *iter.next()
+		i++
+	}
+	return res
+}
+
+pub fn mean(a base.Tensor) f64 {
+	return sum(a) / a.size
+}
+
 pub fn sum_axis(a base.Tensor, axis int) base.Tensor {
 	mut ai := a.axis_iter(axis)
 	mut ii := 1
