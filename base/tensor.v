@@ -1,5 +1,7 @@
 module base
 
+import math
+
 pub struct Tensor {
 pub mut:
 	shape    []int
@@ -51,11 +53,23 @@ fn offset(t Tensor, idx []int) int {
 }
 
 pub fn (t Tensor) get_at(idx []int) f64 {
-	return *(t.buffer + offset(t, idx))
+	mut buf := t.buffer
+	for i := 0; i < t.ndims; i++ {
+		if t.strides[i] < 0 {
+			buf += (t.shape[i] - 1) * int(math.abs(t.strides[i]))
+		}
+	}
+	return *(buf + offset(t, idx))
 }
 
 pub fn (t Tensor) set_at(idx []int, val f64) {
-	mut ptr := t.buffer + offset(t, idx)
+	mut buf := t.buffer
+	for i := 0; i < t.ndims; i++ {
+		if t.strides[i] < 0 {
+			buf += (t.shape[i] - 1) * int(math.abs(t.strides[i]))
+		}
+	}
+	mut ptr := buf + offset(t, idx)
 	*ptr = val
 }
 
@@ -192,7 +206,12 @@ fn (t mut Tensor) update_flags(d map[string]bool) {
 }
 
 pub fn (t Tensor) flat_iter() NdIter {
-	ptr := t.buffer
+	mut ptr := t.buffer
+	for i := 0; i < t.ndims; i++ {
+		if t.strides[i] < 0 {
+			ptr += (t.shape[i] - 1) * int(math.abs(t.strides[i]))
+		}
+	}
 	shape := t.shape
 	dim := t.ndims - 1
 	track := [0].repeat(dim + 1)
