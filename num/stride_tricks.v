@@ -1,6 +1,8 @@
-module base
+module num
 
-fn broadcastable(arr Tensor, other Tensor) []int {
+import base
+
+fn broadcastable(arr base.Tensor, other base.Tensor) []int {
 	sz := arr.shape.len
 	osz := other.shape.len
 	if sz == osz {
@@ -71,16 +73,28 @@ fn broadcastable_shape(a []int, b []int) []int {
 	return ret
 }
 
-pub fn broadcast_to(t Tensor, newshape []int) Tensor {
-	defstrides := cstrides(newshape)
+pub fn broadcast_to(t base.Tensor, newshape []int) base.Tensor {
+	defstrides := base.cstrides(newshape)
 	newstrides := broadcast_strides(newshape, t.shape, defstrides, t.strides)
-	newflags := no_flags()
-	return Tensor {
+	newflags := base.no_flags()
+	return base.Tensor {
 		buffer: t.buffer
 		shape: newshape
 		strides: newstrides
 		flags: newflags
-		size: shape_size(newshape)
+		size: base.shape_size(newshape)
+		ndims: newshape.len
+		itemsize: t.itemsize
+	}
+}
+
+pub fn as_strided(t base.Tensor, newshape []int, newstrides []int) base.Tensor {
+	return base.Tensor {
+		buffer: t.buffer
+		shape: newshape
+		strides: newstrides
+		flags: base.no_flags()
+		size: base.shape_size(newshape)
 		ndims: newshape.len
 		itemsize: t.itemsize
 	}

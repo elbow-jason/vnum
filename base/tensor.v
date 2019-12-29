@@ -350,13 +350,13 @@ pub fn (t Tensor) transpose(order []int) Tensor {
 	return ret
 }
 
-fn from_array(a []f64, shape []int) Tensor {
+pub fn from_array(a []f64, shape []int) Tensor {
 	data := a.clone().data
 	size := shape_size(shape)
 	if size != a.len {
 		panic('Cannot fit array into $shape')
 	}
-	return Tensor {
+	return base.Tensor {
 		buffer: data
 		size: size
 		ndims: shape.len
@@ -365,14 +365,4 @@ fn from_array(a []f64, shape []int) Tensor {
 		strides: cstrides(shape)
 		shape: shape
 	}
-}
-
-pub fn from_f32(a []f32, shape []int) Tensor {
-	ret := a.map(f64(it))
-	return from_array(ret, shape)
-}
-
-pub fn from_int(a []int, shape []int) Tensor {
-	ret := a.map(f64(it))
-	return from_array(ret, shape)
 }

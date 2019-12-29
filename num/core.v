@@ -134,3 +134,17 @@ pub fn triu(t base.Tensor) base.Tensor {
 pub fn triu_inpl(t base.Tensor) {
 	triu_inplace_offset(t, 0)
 }
+
+pub fn from_f32(a []f32, shape []int) base.Tensor {
+	ret := a.map(f64(it))
+	return base.from_array(ret, shape)
+}
+
+pub fn from_int(a []int, shape []int) base.Tensor {
+	ret := a.map(f64(it))
+	return base.from_array(ret, shape)
+}
+
+pub fn from_f64(a []f64, shape []int) base.Tensor {
+	return base.from_array(a, shape)
+}

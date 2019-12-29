@@ -41,7 +41,7 @@ fn all_flags() map[string]bool {
 	return m
 }
 
-fn no_flags() map[string]bool {
+pub fn no_flags() map[string]bool {
 	m := {
 		'contiguous': false
 		'fortran': false

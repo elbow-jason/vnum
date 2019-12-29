@@ -41,12 +41,50 @@ fn maximum_(a f64, b f64) f64 {
 	return b
 }
 
+fn array_equal(a []int, b []int) bool {
+	if a.len != b.len {
+		return false
+	}
+	for i := 0; i < a.len; i++ {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+pub fn broadcast_tensors(a base.Tensor, b base.Tensor) []base.Tensor {
+	bshape := broadcastable(a, b)
+	mut ret := []base.Tensor
+	if !array_equal(a.shape, bshape) {
+		ret << broadcast_to(a, bshape)
+	}
+	else {
+		ret << a
+	}
+	if !array_equal(b.shape, bshape) {
+		ret << broadcast_to(b, bshape)
+	}
+	else {
+		ret << b
+	}
+	return ret
+}
+
 fn op(a base.Tensor, b base.Tensor, op fn(f64, f64)f64) base.Tensor {
-	ret := a.copy('C')
+	tns := match array_equal(a.shape, b.shape) {
+		true{
+			[a, b]
+		}
+		else {
+			broadcast_tensors(a, b)}
+	}
+	ret := tns[0].copy('C')
+	bb := tns[1]
 	mut ret_iter := ret.flat_iter()
-	mut rhs_iter := b.flat_iter()
+	mut rhs_iter := bb.flat_iter()
 	mut ii := 0
-	for ii < a.size {
+	for ii < ret.size {
 		mut ptr := ret_iter.next()
 		*ptr = op(*ptr, *rhs_iter.next())
 		ii++

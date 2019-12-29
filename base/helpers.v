@@ -1,6 +1,6 @@
 module base
 
-fn cstrides(shape []int) []int {
+pub fn cstrides(shape []int) []int {
 	mut sz := 1
 	mut ii := 0
 	ndims := shape.len
@@ -26,7 +26,7 @@ fn fstrides(shape []int) []int {
 	return strides
 }
 
-fn shape_size(shape []int) int {
+pub fn shape_size(shape []int) int {
 	mut sz := 1
 	for s in shape {
 		sz *= s
