@@ -1,34 +1,73 @@
-Vnum is in active development, and contributions are always welcome!  Progress will not be that useful until generics are implemented in v.
+# vnum
 
-```v
-import num
+`vnum` is the core shard needed for scientific computing with V.
 
-fn main() {
-	t := num.seq(12).reshape([3, 2, 2]).transpose([2, 0, 1])
-	println(t)
-	println(num.divide(t, t))
-	a := num.sum_axis(t, 1)
-	println(a)
-}
+It provides:
+
+- An n-dimensional `Tensor` data structure
+- sophisticated reduction, elementwise, and accumulation operations
+- data structures that can easily be passed to C libraries
+- powerful linear algebra routines backed by LAPACK and BLAS.
+
+## Installation
+
+Using [vpm](https://vpm.best/)
+
+```sh
+$ v install christopherzimmerman.vnum
 ```
 
-```v
-[[[ 0.000,  2.000],
-  [ 4.000,  6.000],
-  [ 8.000, 10.000]],
+`vnum` requires LAPACK and OPENBLAS to be installed on linux, and the Accelerate framework on darwin.  Please review your OS's installation instructions to install these libraries.  If you wish you to use `vnum` without these, the `num` module will still function as normal.
 
- [[ 1.000,  3.000],
-  [ 5.000,  7.000],
-  [ 9.000, 11.000]]]
+## Basic Usage
 
-[[[-nan, 1.000],
-  [1.000, 1.000],
-  [1.000, 1.000]],
-
- [[1.000, 1.000],
-  [1.000, 1.000],
-  [1.000, 1.000]]]
-  
-[[12.000, 18.000],
- [15.000, 21.000]]
+```sh
+>>> import vnum.num
+>>> num.seq(30)
+[ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
+ 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
 ```
+
+`vnum` provides vectorized operations on tensors.
+
+```sh
+>>> a := num.seq(12).reshape([3, 2, 2])
+>>> num.sum_axis(a, 1)
+[[ 2,  4],
+ [10, 12],
+ [18, 20]]
+```
+
+Use the `vnum.linalg` module for powerful `BLAS` backed routines.
+
+```sh
+>>> import vnum.num
+>>> import vnum.linalg
+>>> a := num.seq(60).reshape([3, 4, 5])
+>>> b := num.seq(24).reshape([4, 3, 2])
+>>> res := linalg.tensordot(a, b, [1, 0], [0, 1])
+>>> res
+[[4400, 4730],
+ [4532, 4874],
+ [4664, 5018],
+ [4796, 5162],
+ [4928, 5306]]
+```
+
+## License
+
+[MIT](LICENSE)
+
+
+## Core Team
+
+- [Chris Zimmerman](https://github.com/christopherzimmerman)
+
+Contributing
+------------
+`vnum` requires help in many different ways to continue to grow as a shard.
+Contributions such as high level documentation and code quality checks are needed just
+as much as API enhancements.  If you are considering larger scale contributions
+that extend beyond minor enhancements and bug fixes, contact Crystal Data
+in order to be added to the organization to gain access to review and merge
+permissions.
