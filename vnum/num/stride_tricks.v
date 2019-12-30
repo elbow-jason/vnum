@@ -1,6 +1,6 @@
 module num
 
-import base
+import vnum.base
 
 fn broadcastable(arr base.Tensor, other base.Tensor) []int {
 	sz := arr.shape.len

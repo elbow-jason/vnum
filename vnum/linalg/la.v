@@ -1,7 +1,7 @@
 module linalg
 
-import base
-import num
+import vnum.base
+import vnum.num
 
 pub fn dot(a base.Tensor, b base.Tensor) f64 {
 	return wrap_ddot(a, b)

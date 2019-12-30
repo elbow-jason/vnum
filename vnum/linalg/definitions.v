@@ -1,7 +1,7 @@
 module linalg
 
-import base
-import num
+import vnum.base
+import vnum.num
 
 enum matrix_layout {
 	row_major = 101

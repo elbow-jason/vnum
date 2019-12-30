@@ -1,6 +1,6 @@
 module num
 
-import base
+import vnum.base
 import math
 
 fn squash_warning_math() {

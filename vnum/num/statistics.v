@@ -1,6 +1,6 @@
 module num
 
-import base
+import vnum.base
 
 pub fn max(a base.Tensor) f64 {
 	mut mx := 0.0

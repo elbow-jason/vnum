@@ -1,6 +1,6 @@
 module num
 
-import base
+import vnum.base
 
 pub fn repeat_flat(a base.Tensor, n int) base.Tensor {
 	ret := empty([a.size * n])

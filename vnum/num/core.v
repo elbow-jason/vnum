@@ -1,6 +1,6 @@
 module num
 
-import base
+import vnum.base
 
 pub fn concatenate(ts []base.Tensor, axis int) base.Tensor {
 	return base.concatenate(ts, axis)
