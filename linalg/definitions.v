@@ -20,6 +20,14 @@ struct Workspace {
 	work &f64
 }
 
+fn allocate_workspace(size int) Workspace {
+	ptr := *f64(calloc(size * sizeof(f64)))
+	return Workspace{
+		size: size
+		work: ptr
+	}
+}
+
 fn C.cblas_ddot(n int, dx &f64, incx int, dy &f64, incy int) f64
 
 
@@ -59,6 +67,21 @@ fn C.dlange_(norm &byte, m &int, n &int, a &f64, lda &int, work &f64) f64
 fn C.cblas_dgemm(transa blas_transpose, transb blas_transpose, m int, n int, k int, alpha f64, a &f64, lda int, b &f64, ldb int, c &f64, ldc int)
 
 
+fn C.dsyev_(jobz &byte, uplo &byte, n &int, a &f64, lda &int, w &f64, work &f64, lwork &int, info &int)
+
+
+fn C.dgeev_(jobvl &byte, jobvr &byte, n &int, a &f64, lda &int, wr &f64, wi &f64, vl &f64, ldvl &int, vr &f64, ldvr &int, work &f64, lwork &int, info &int)
+
+
+fn C.dgesv_(n &int, nrhs &int, a &f64, lda int, ipiv &int, b &f64, ldb &int, info &int)
+
+
+fn C.dgebal_(job &byte, n &int, a &f64, lda &int, ilo &int, ihi &int, scale &f64, info &int)
+
+
+fn C.dgehrd_(n &int, ilo &int, ihi &int, a &f64, lda &int, tau &f64, work &f64, lwork &int, info &int)
+
+
 fn fortran_view_or_copy(t base.Tensor) base.Tensor {
 	if t.flags['fortran'] {
 		return t.dup_view()
@@ -70,6 +93,18 @@ fn fortran_view_or_copy(t base.Tensor) base.Tensor {
 
 fn fortran_copy(t base.Tensor) base.Tensor {
 	return t.copy('F')
+}
+
+fn assert_square_matrix(a base.Tensor) {
+	if a.ndims != 2 || a.shape[0] != a.shape[1] {
+		panic('Matrix is not square')
+	}
+}
+
+fn assert_matrix(a base.Tensor) {
+	if a.ndims != 2 {
+		panic('Tensor is not two-dimensional')
+	}
 }
 
 fn wrap_ddot(a base.Tensor, b base.Tensor) f64 {
@@ -185,4 +220,109 @@ fn wrap_matmul(a base.Tensor, b base.Tensor) base.Tensor {
 	}
 	C.cblas_dgemm(matrix_layout.row_major, blas_transpose.no_trans, .no_trans, ma.shape[0], mb.shape[1], ma.shape[1], 1.0, ma.buffer, ma.shape[1], mb.buffer, mb.shape[1], 1.0, dest.buffer, dest.shape[1])
 	return dest
+}
+
+fn wrap_eigh(a base.Tensor) []base.Tensor {
+	assert_square_matrix(a)
+	ret := a.copy('F')
+	n := ret.shape[0]
+	w := num.empty([n])
+	jobz := `V`
+	uplo := `L`
+	info := 0
+	workspace := allocate_workspace(3 * n - 1)
+	C.dsyev_(&jobz, &uplo, &n, ret.buffer, &n, w.buffer, workspace.work, &workspace.size, &info)
+	if info > 0 {
+		panic('Failed to converge')
+	}
+	return [w, ret]
+}
+
+fn wrap_eig(a base.Tensor) []base.Tensor {
+	assert_square_matrix(a)
+	ret := a.copy('F')
+	n := ret.shape[0]
+	wr := num.empty([n])
+	wl := wr.copy('C')
+	vl := base.allocate_tensor_fortran([n, n])
+	vr := vl.copy('C')
+	workspace := allocate_workspace(n * 4)
+	jobvr := `V`
+	jobvl := `V`
+	info := 0
+	C.dgeev_(&jobvl, &jobvr, &n, ret.buffer, &n, wr.buffer, wl.buffer, vl.buffer, &n, vr.buffer, &n, workspace.work, &workspace.size, &info)
+	if info > 0 {
+		panic('QR algorithm failed')
+	}
+	return [wr, vl]
+}
+
+pub fn wrap_eigvalsh(a base.Tensor) base.Tensor {
+	assert_square_matrix(a)
+	ret := fortran_view_or_copy(a)
+	n := ret.shape[0]
+	jobz := `V`
+	uplo := `L`
+	info := 0
+	w := num.empty([n])
+	workspace := allocate_workspace(3 * n - 1)
+	C.dsyev_(&jobz, &uplo, &n, ret.buffer, &n, w.buffer, workspace.work, &workspace.size, &info)
+	if info > 0 {
+		panic('Failed to converge')
+	}
+	return w
+}
+
+pub fn wrap_eigvals(a base.Tensor) base.Tensor {
+	assert_square_matrix(a)
+	ret := a.copy('F')
+	n := ret.shape[0]
+	wr := num.empty([n])
+	wl := wr.copy('C')
+	vl := base.allocate_tensor_fortran([n, n])
+	vr := vl.copy('C')
+	workspace := allocate_workspace(n * 3)
+	jobvr := `N`
+	jobvl := `N`
+	info := 0
+	C.dgeev_(&jobvl, &jobvr, &n, ret.buffer, &n, wr.buffer, wl.buffer, vl.buffer, &n, vr.buffer, &n, workspace.work, &workspace.size, &info)
+	if info > 0 {
+		panic('QR algorithm failed')
+	}
+	return wr
+}
+
+pub fn wrap_solve(a base.Tensor, b base.Tensor) base.Tensor {
+	assert_square_matrix(a)
+	af := fortran_view_or_copy(a)
+	bf := b.copy('F')
+	n := af.shape[0]
+	mut m := bf.shape[0]
+	if bf.ndims > 1 {
+		m = bf.shape[1]
+	}
+	ipiv := *int(calloc(n * sizeof(int)))
+	info := 0
+	C.dgesv_(&n, &m, af.buffer, &n, ipiv, bf.buffer, &m, &info)
+	return bf
+}
+
+pub fn wrap_hessenberg(a base.Tensor) base.Tensor {
+	assert_square_matrix(a)
+	ret := a.copy('F')
+	if ret.shape[0] < 2 {
+		return ret
+	}
+	n := ret.shape[0]
+	s := base.allocate_tensor_fortran([n])
+	ilo := 0
+	ihi := 0
+	job := `B`
+	info := 0
+	C.dgebal_(&job, &n, ret.buffer, &n, &ilo, &ihi, s.buffer, &info)
+	tau := base.allocate_tensor_fortran([n])
+	workspace := allocate_workspace(n)
+	C.dgehrd_(&n, &ilo, &ihi, ret.buffer, &n, tau.buffer, workspace.work, &workspace.size, &info)
+	num.triu_inpl_offset(ret, -1)
+	return ret
 }

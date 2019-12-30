@@ -33,3 +33,27 @@ pub fn inv(a base.Tensor) base.Tensor {
 pub fn matmul(a base.Tensor, b base.Tensor) base.Tensor {
 	return wrap_matmul(a, b)
 }
+
+pub fn eigh(a base.Tensor) []base.Tensor {
+	return wrap_eigh(a)
+}
+
+pub fn eig(a base.Tensor) []base.Tensor {
+	return wrap_eig(a)
+}
+
+pub fn eigvalsh(a base.Tensor) base.Tensor {
+	return wrap_eigvalsh(a)
+}
+
+pub fn eigvals(a base.Tensor) base.Tensor {
+	return wrap_eigvals(a)
+}
+
+pub fn solve(a base.Tensor, b base.Tensor) base.Tensor {
+	return wrap_solve(a, b)
+}
+
+pub fn hessenberg(a base.Tensor) base.Tensor {
+	return wrap_hessenberg(a)
+}

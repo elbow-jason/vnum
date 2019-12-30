@@ -121,8 +121,18 @@ pub fn tril(t base.Tensor) base.Tensor {
 	return ret
 }
 
+pub fn tril_offset(t base.Tensor, offset int) base.Tensor {
+	ret := t.copy('C')
+	tril_inplace_offset(ret, offset)
+	return ret
+}
+
 pub fn tril_inpl(t base.Tensor) {
 	tril_inplace_offset(t, 0)
+}
+
+pub fn tril_inpl_offset(t base.Tensor, offset int) {
+	tril_inplace_offset(t, offset)
 }
 
 pub fn triu(t base.Tensor) base.Tensor {
@@ -131,8 +141,18 @@ pub fn triu(t base.Tensor) base.Tensor {
 	return ret
 }
 
+pub fn triu_offset(t base.Tensor, offset int) base.Tensor {
+	ret := t.copy('C')
+	triu_inplace_offset(ret, offset)
+	return ret
+}
+
 pub fn triu_inpl(t base.Tensor) {
 	triu_inplace_offset(t, 0)
+}
+
+pub fn triu_inpl_offset(t base.Tensor, offset int) {
+	triu_inpl_offset(t, offset)
 }
 
 pub fn from_f32(a []f32, shape []int) base.Tensor {
