@@ -288,6 +288,44 @@ pub fn (t Tensor) dup_view() Tensor {
 	return ret
 }
 
+fn shape_min(shape []int) int {
+	mut mn := 0
+	for i, dim in shape {
+		if i == 0 {
+			mn = dim
+		}
+		if dim < mn {
+			mn = dim
+		}
+	}
+	return mn
+}
+
+fn shape_sum(shape []int) int {
+	mut ret := 0
+	for i in shape {
+		ret += i
+	}
+	return ret
+}
+
+pub fn (t Tensor) diag_view() Tensor {
+	nel := shape_min(t.shape)
+	newshape := [nel]
+	newstrides := [shape_sum(t.strides)]
+	mut newflags := dup_flags(t.flags)
+	newflags['owndata'] = false
+	return Tensor {
+		buffer: t.buffer
+		ndims: 1
+		shape: newshape
+		strides: newstrides
+		flags: newflags
+		size: nel
+		itemsize: t.itemsize
+	}
+}
+
 pub fn (t Tensor) reshape(shape []int) Tensor {
 	mut ret := t.dup_view()
 	mut newshape := shape.clone()

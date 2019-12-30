@@ -48,7 +48,7 @@ pub fn sum(a base.Tensor) f64 {
 }
 
 pub fn prod(a base.Tensor) f64 {
-	mut res := 0.0
+	mut res := 1.0
 	mut iter := a.flat_iter()
 	mut i := 0
 	for i < a.size {
