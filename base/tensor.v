@@ -407,11 +407,16 @@ pub fn (t Tensor) transpose(order []int) Tensor {
 	return ret
 }
 
-pub fn (t Tensor) swapaxes(a1 int, a2 int) base.Tensor {
-	mut order := []int
-	for i in 0 .. t.ndims {
-		order << i
+pub fn range(start int, stop int) []int {
+	mut ret := []int
+	for i in start .. stop {
+		ret << i
 	}
+	return ret
+}
+
+pub fn (t Tensor) swapaxes(a1 int, a2 int) Tensor {
+	mut order := range(0, t.ndims)
 	tmp := order[a1]
 	order[a1] = order[a2]
 	order[a2] = tmp
@@ -424,7 +429,7 @@ pub fn from_array(a []f64, shape []int) Tensor {
 	if size != a.len {
 		panic('Cannot fit array into $shape')
 	}
-	return base.Tensor {
+	return Tensor {
 		buffer: data
 		size: size
 		ndims: shape.len
