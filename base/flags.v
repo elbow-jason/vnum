@@ -31,7 +31,7 @@ pub fn (f map[string]bool) str() string {
 	return io.str()
 }
 
-fn all_flags() map[string]bool {
+pub fn all_flags() map[string]bool {
 	m := {
 		'contiguous': true
 		'fortran': true
@@ -51,7 +51,7 @@ pub fn no_flags() map[string]bool {
 	return m
 }
 
-fn dup_flags(f map[string]bool) map[string]bool {
+pub fn dup_flags(f map[string]bool) map[string]bool {
 	mut ret := map[string]bool
 	for i in ['contiguous', 'fortran', 'owndata', 'write'] {
 		ret[i] = f[i]

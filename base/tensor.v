@@ -180,7 +180,7 @@ fn (t Tensor) is_contiguous() bool {
 	return true
 }
 
-fn (t mut Tensor) update_flags(d map[string]bool) {
+pub fn (t mut Tensor) update_flags(d map[string]bool) {
 	if (d['fortran'] && t.flags['fortran']) {
 		if t.is_fortran_contiguous() {
 			t.flags['fortran'] = true
@@ -345,7 +345,7 @@ pub fn (t Tensor) reshape(shape []int) Tensor {
 	}
 	if (autosize >= 0) {
 		newshape = newshape.clone()
-		newshape[autosize] = newsize / cur_size
+		newshape[autosize] = cur_size / newsize
 		newsize *= newshape[autosize]
 	}
 	if (newsize != cur_size) {
@@ -390,10 +390,10 @@ pub fn (t Tensor) transpose(order []int) Tensor {
 		if (axis < 0 || axis >= t.ndims) {
 			panic('Bad permutation')
 		}
-		if (reverse_permutation[axis] == -1) {
+		if (reverse_permutation[axis] != -1) {
 			panic('Bad permutation')
 		}
-		reverse_permutation[i] = i
+		reverse_permutation[axis] = i
 		permutation[i] = axis
 		i++
 	}
@@ -405,6 +405,17 @@ pub fn (t Tensor) transpose(order []int) Tensor {
 	}
 	ret.update_flags(all_flags())
 	return ret
+}
+
+pub fn (t Tensor) swapaxes(a1 int, a2 int) base.Tensor {
+	mut order := []int
+	for i in 0 .. t.ndims {
+		order << i
+	}
+	tmp := order[a1]
+	order[a1] = order[a2]
+	order[a2] = tmp
+	return t.transpose(order)
 }
 
 pub fn from_array(a []f64, shape []int) Tensor {
