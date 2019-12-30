@@ -407,6 +407,10 @@ pub fn (t Tensor) transpose(order []int) Tensor {
 	return ret
 }
 
+pub fn (t Tensor) ravel() Tensor {
+	return t.reshape([-1])
+}
+
 pub fn range(start int, stop int) []int {
 	mut ret := []int
 	for i in start .. stop {

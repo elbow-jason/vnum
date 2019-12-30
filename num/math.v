@@ -114,12 +114,35 @@ fn op_scalar(a base.Tensor, b f64, op fn(f64, f64)f64) base.Tensor {
 	return ret
 }
 
+fn op_outer(a base.Tensor, b base.Tensor, op fn(f64, f64)f64) base.Tensor {
+	mut shape := a.shape.clone()
+	shape << b.shape
+	ret := empty(shape)
+
+	mut ret_iter := ret.flat_iter()
+	mut a_iter := a.flat_iter()
+
+	for i := 0; i < a.size; i++ {
+		av := *a_iter.next()
+		mut b_iter := b.flat_iter()
+		for j := 0; j < b.size; j++ {
+			mut ptr := ret_iter.next()
+			*ptr = op(av, *b_iter.next())
+		}
+	}
+	return ret
+}
+
 pub fn add(a base.Tensor, b base.Tensor) base.Tensor {
 	return op(a, b, add_)
 }
 
 pub fn add_scalar(a base.Tensor, b f64) base.Tensor {
 	return op_scalar(a, b, add_)
+}
+
+pub fn add_outer(a base.Tensor, b base.Tensor) base.Tensor {
+	return op_outer(a, b, add_)
 }
 
 pub fn subtract(a base.Tensor, b base.Tensor) base.Tensor {
@@ -130,12 +153,20 @@ pub fn subtract_scalar(a base.Tensor, b f64) base.Tensor {
 	return op_scalar(a, b, subtract_)
 }
 
+pub fn subtract_outer(a base.Tensor, b base.Tensor) base.Tensor {
+	return op_outer(a, b, subtract_)
+}
+
 pub fn divide(a base.Tensor, b base.Tensor) base.Tensor {
 	return op(a, b, divide_)
 }
 
 pub fn divide_scalar(a base.Tensor, b f64) base.Tensor {
 	return op_scalar(a, b, divide_)
+}
+
+pub fn divide_outer(a base.Tensor, b base.Tensor) base.Tensor {
+	return op_outer(a, b, divide_)
 }
 
 pub fn multiply(a base.Tensor, b base.Tensor) base.Tensor {
@@ -146,6 +177,10 @@ pub fn multiply_scalar(a base.Tensor, b f64) base.Tensor {
 	return op_scalar(a, b, multiply_)
 }
 
+pub fn multiply_outer(a base.Tensor, b base.Tensor) base.Tensor {
+	return op_outer(a, b, multiply_)
+}
+
 pub fn minimum(a base.Tensor, b base.Tensor) base.Tensor {
 	return op(a, b, minimum_)
 }
@@ -154,12 +189,20 @@ pub fn minimum_scalar(a base.Tensor, b f64) base.Tensor {
 	return op_scalar(a, b, minimum_)
 }
 
+pub fn minimum_outer(a base.Tensor, b base.Tensor) base.Tensor {
+	return op_outer(a, b, minimum_)
+}
+
 pub fn maximum(a base.Tensor, b base.Tensor) base.Tensor {
 	return op(a, b, maximum_)
 }
 
 pub fn maximum_scalar(a base.Tensor, b f64) base.Tensor {
 	return op_scalar(a, b, maximum_)
+}
+
+pub fn maximum_outer(a base.Tensor, b base.Tensor) base.Tensor {
+	return op_outer(a, b, maximum_)
 }
 
 pub fn acos(a base.Tensor) base.Tensor {
@@ -184,6 +227,10 @@ pub fn atan2(a base.Tensor, b base.Tensor) base.Tensor {
 
 pub fn atan2_scalar(a base.Tensor, b f64) base.Tensor {
 	return op_scalar(a, b, math.atan2)
+}
+
+pub fn atan2_outer(a base.Tensor, b base.Tensor) base.Tensor {
+	return op_outer(a, b, math.atan2)
 }
 
 pub fn cbrt(a base.Tensor) base.Tensor {
@@ -230,6 +277,10 @@ pub fn fmod(a base.Tensor, b base.Tensor) base.Tensor {
 	return op(a, b, math.fmod)
 }
 
+pub fn fmod_outer(a base.Tensor, b base.Tensor) base.Tensor {
+	return op_outer(a, b, math.fmod)
+}
+
 pub fn fmod_scalar(a base.Tensor, b f64) base.Tensor {
 	return op_scalar(a, b, math.fmod)
 }
@@ -258,6 +309,10 @@ pub fn logn(a base.Tensor, b base.Tensor) base.Tensor {
 	return op(a, b, math.log_n)
 }
 
+pub fn logn_outer(a base.Tensor, b base.Tensor) base.Tensor {
+	return op_outer(a, b, math.log_n)
+}
+
 pub fn logn_scalar(a base.Tensor, b f64) base.Tensor {
 	return op_scalar(a, b, math.log_n)
 }
@@ -268,6 +323,10 @@ pub fn pow(a base.Tensor, b base.Tensor) base.Tensor {
 
 pub fn pow_scalar(a base.Tensor, b f64) base.Tensor {
 	return op_scalar(a, b, math.pow)
+}
+
+pub fn pow_outer(a base.Tensor, b base.Tensor) base.Tensor {
+	return op_outer(a, b, math.pow)
 }
 
 pub fn radians(a base.Tensor) base.Tensor {
