@@ -65,9 +65,9 @@ Use the `vnum.linalg` module for powerful `BLAS` backed routines.
 
 Contributing
 ------------
-`vnum` requires help in many different ways to continue to grow as a shard.
+`vnum` requires help in many different ways to continue to grow as a module.
 Contributions such as high level documentation and code quality checks are needed just
 as much as API enhancements.  If you are considering larger scale contributions
-that extend beyond minor enhancements and bug fixes, contact Crystal Data
+that extend beyond minor enhancements and bug fixes, contact Chris Zimmerman
 in order to be added to the organization to gain access to review and merge
 permissions.
