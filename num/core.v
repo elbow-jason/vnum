@@ -1,6 +1,7 @@
 module num
 
 import vnum.base
+import math
 
 pub fn concatenate(ts []base.Tensor, axis int) base.Tensor {
 	return base.concatenate(ts, axis)
@@ -87,6 +88,34 @@ pub fn linspace(start f64, stop f64, num int) base.Tensor {
 	return y
 }
 
+pub fn logspace(start f64, stop f64, num int) base.Tensor {
+	return logspace_base(start, stop, num, 10.0)
+}
+
+pub fn logspace_base(start f64, stop f64, num int, base f64) base.Tensor {
+	return scalar_pow(base, linspace(start, stop, num))
+}
+
+pub fn geomspace(start f64, stop f64, num int) base.Tensor {
+	if start == 0 || stop == 0 {
+		panic("Geometric sequence cannot include 0")
+	}
+	mut out_sign := 1.0
+	mut ustart := start
+	mut ustop := stop
+
+	if start < 0 && stop < 0 {
+		ustart = -start
+		ustop = -stop
+		out_sign = -out_sign
+	}
+
+	log_start := math.log10(ustart)
+	log_stop := math.log10(ustop)
+
+	return multiply_scalar(logspace(log_start, log_stop, num), out_sign)
+}
+
 fn tril_inplace_offset(t base.Tensor, offset int) {
 	mut i := 0
 	for i < t.shape[0] {
@@ -167,4 +196,71 @@ pub fn from_int(a []int, shape []int) base.Tensor {
 
 pub fn from_f64(a []f64, shape []int) base.Tensor {
 	return base.from_array(a, shape)
+}
+
+pub fn eye(m int, n int, k int) base.Tensor {
+	ret := zeros([m, n])
+	mut ret_iter := ret.flat_iter()
+	for i := 0; i < m; i++ {
+		for j := 0; j < n; j++ {
+			mut ptr := ret_iter.next()
+			if i == j - k {
+				*ptr = f64(1.0)
+			}
+		}
+	}
+	return ret
+}
+
+pub fn identity(n int) base.Tensor {
+	return eye(n, n, 0)
+}
+
+pub fn diag(a base.Tensor, k int) base.Tensor {
+	if a.ndims > 1 {
+		panic("A must be one dimensional")
+	}
+	mut aiter := a.flat_iter()
+	n := a.size
+	ret := zeros([n, n])
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			if i == j - k {
+				ret.set_at([i, j], *aiter.next())
+			}
+		}
+	}
+	return ret
+}
+
+pub fn vander(x base.Tensor, n int) base.Tensor {
+	if x.ndims > 1 {
+		panic("Vandermonde matrices must be initialized from 1-d data")
+	}
+	ret := empty([x.size, n])
+	mut iter := ret.flat_iter()
+	for i := 0; i < x.size; i++ {
+		for j := 0; j < n; j++ {
+			mut ptr := iter.next()
+			offset := n - j - 1
+			*ptr = math.pow(x.get_at([i]), offset)
+		}
+	}
+	return ret
+}
+
+pub fn vanderi(x base.Tensor n int) base.Tensor {
+	if x.ndims > 1 {
+		panic("Vandermonde matrices must be initialized from 1-d data")
+	}
+	ret := empty([x.size, n])
+	mut iter := ret.flat_iter()
+	for i := 0; i < x.size; i++ {
+		for j := 0; j < n; j++ {
+			mut ptr := iter.next()
+			offset := j
+			*ptr = math.pow(x.get_at([i]), offset)
+		}
+	}
+	return ret
 }
