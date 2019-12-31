@@ -2,6 +2,32 @@ module linalg
 
 import vnum.num
 import vnum.base
+import math
+
+pub fn block_diag(arrs []base.Tensor) base.Tensor {
+	blocks := arrs.map(num.atleast_2d(it))
+	bad := blocks.filter(it.ndims > 2)
+	if bad.len > 0 {
+		panic("Only two dimensional tensors are supported")
+	}
+	mut shapes := []int
+	for block in blocks {
+		shapes << block.shape
+	}
+	shapet := num.from_int(shapes, [blocks.len, 2])
+	mn := num.sum_axis(shapet, 0)
+	mut r := 0
+	mut c := 0
+	ret := num.zeros([int(mn.get_at([0])), int(mn.get_at([1]))])
+	for block in blocks {
+		rr := block.shape[0]
+		cc := block.shape[1]
+		ret.set([r, c], [r+rr, c+cc], block)
+		r += rr
+		c += cc
+	}
+	return ret
+}
 
 pub fn circulant(c base.Tensor) base.Tensor {
 	mc := c.ravel()
@@ -36,6 +62,61 @@ pub fn companion(a base.Tensor) base.Tensor {
 		c.set_at([i, j], 1.0)
 	}
 	return c
+}
+
+pub fn fiedler(a base.Tensor) base.Tensor {
+	if a.ndims != 1 {
+		panic("Input must be a 1D array")
+	}
+
+	if a.size == 1 {
+		return num.from_int([1], [1, 1])
+	}
+
+	return num.abs(num.subtract_outer(a, a))
+}
+
+pub fn hadamard(n int) base.Tensor {
+	mut lg2 := f64(0.0)
+	if n >= 1 {
+		lg2 = math.log_n(n, 2)
+	}
+	mut h := num.from_int([1], [1, 1])
+
+	for i := 0; i < int(lg2); i++ {
+		a := num.hstack([h, h])
+		b := num.hstack([h, num.multiply_scalar(h, -1)])
+		h = num.vstack([a, b])
+	}
+	return h
+}
+
+fn tolist(a base.Tensor) []base.Tensor {
+	mut ret := []base.Tensor
+	for i in 0 .. a.shape[0] {
+		ret << a.get([i], [i])
+	}
+	return ret
+}
+
+pub fn kron(a base.Tensor, b base.Tensor) base.Tensor {
+	mut ar := a
+	if !ar.flags["contiguous"] {
+		ar = ar.reshape(ar.shape)
+	}
+	mut br := b
+	if !br.flags["contiguous"] {
+		br = br.reshape(br.shape)
+	}
+
+	mut o := num.multiply_outer(ar, br)
+	mut newshape := ar.shape
+	newshape << br.shape
+	o = o.reshape(newshape)
+
+	c1 := num.concatenate(tolist(o), 1)
+	return num.concatenate(tolist(c1), 1)
+
 }
 
 fn supress_matrices() {

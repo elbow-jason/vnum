@@ -172,3 +172,13 @@ pub fn vsplit_expl(a base.Tensor, ind []int) []base.Tensor {
 	}
 	return split_expl(a, ind, 0)
 }
+
+pub fn atleast_2d(a base.Tensor) base.Tensor {
+	dim := 2 - a.ndims
+	if dim > 0 {
+		mut pad := [1].repeat(dim)
+		pad << a.shape
+		return a.reshape(pad)
+	}
+	return a
+}
