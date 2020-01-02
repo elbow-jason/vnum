@@ -73,6 +73,75 @@ pub fn (t Tensor) set_at(idx []int, val f64) {
 	*ptr = val
 }
 
+pub fn (t Tensor) pull(idx ...[]int) Tensor {
+	mut newshape := t.shape.clone()
+	mut newstrides := t.strides.clone()
+	newflags := default_flags('C')
+	mut indexer := []int
+	for i, dex in idx {
+		mut fi := 0
+		mut li := 0
+		if dex.len == 1 {
+			newshape[i] = 0
+			newstrides[i] = 0
+			fi = dex[0]
+			if fi < 0 {
+				fi += t.shape[i]
+			}
+			indexer << fi
+		} else if dex.len == 2 {
+			fi = dex[0]
+			li = dex[1]
+			if fi < 0 {
+				fi += t.shape[i]
+			}
+			if li < 0 {
+				li += t.shape[i]
+			}
+			if fi == li {
+				newshape[i] = 0
+				newstrides[i] = 0
+				indexer << fi
+			} else {
+				newshape[i] = li - fi
+			}
+		} else if dex.len == 3 {
+			fi = dex[0]
+			li = dex[1]
+			step := dex[2]
+			abstep := int(math.abs(step))
+			if fi < 0 {
+				fi += t.shape[i]
+			}
+			if li < 0 {
+				li += t.shape[i]
+			}
+			offset := li - fi
+			newshape[i] = offset / abstep + offset % abstep
+			newstrides[i] = step * newstrides[i]
+			indexer << fi
+		}
+	}
+	newshape_ := newshape.filter(it != 0)
+	newstrides_ := newstrides.filter(it != 0)
+	mut ptr := t.buffer
+	mut i := 0
+	for i < indexer.len {
+		ptr += t.strides[i] * indexer[i]
+		i++
+	}
+	mut ret := Tensor {
+		shape: newshape_
+		strides: newstrides_
+		ndims: newshape_.len
+		size: shape_size(newshape_)
+		buffer: ptr
+		flags: newflags
+	}
+	ret.update_flags(all_flags())
+	return ret
+}
+
 pub fn (t Tensor) get(idx1 []int, idx2 []int) Tensor {
 	mut newshape := t.shape.clone()
 	mut newstrides := t.strides.clone()
@@ -124,6 +193,22 @@ pub fn (t Tensor) get(idx1 []int, idx2 []int) Tensor {
 
 pub fn (t Tensor) set(idx1 []int, idx2 []int, val Tensor) {
 	slice := t.get(idx1, idx2)
+	mut ia := slice.flat_iter()
+	mut ib := val.flat_iter()
+	mut i := 0
+	for i < slice.size {
+		mut ptr := ia.next()
+		*ptr = *ib.next()
+		i++
+	}
+}
+
+pub fn (t Tensor) value() f64 {
+	return *t.buffer
+}
+
+pub fn (t Tensor) place(val Tensor, idx ...[]int) {
+	slice := t.pull(idx)
 	mut ia := slice.flat_iter()
 	mut ib := val.flat_iter()
 	mut i := 0
