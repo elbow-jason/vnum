@@ -91,6 +91,16 @@ pub fn geomspace(start f64, stop f64, num int) ndarray.NdArray {
 	return multiplys(logspace(log_start, log_stop, num), out_sign)
 }
 
+pub fn sign_scalar(value f64) f64 {
+	if value == 0.0 {
+		return 0.0
+	} else if value > 0.0 {
+		return 1.0
+	} else {
+		return -1.0
+	}
+}
+
 fn supress_numeric() {
 	ndarray.allocate_ndarray([1], 'F')
 }
