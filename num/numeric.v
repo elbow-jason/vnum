@@ -90,3 +90,7 @@ pub fn geomspace(start f64, stop f64, num int) ndarray.NdArray {
 
 	return multiplys(logspace(log_start, log_stop, num), out_sign)
 }
+
+fn supress_numeric() {
+	ndarray.allocate_ndarray([1], 'F')
+}

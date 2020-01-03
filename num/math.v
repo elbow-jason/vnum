@@ -1,7 +1,6 @@
 module num
 
 import vnum.ndarray
-import math
 
 // t + t
 pub fn add(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {

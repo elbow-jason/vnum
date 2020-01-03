@@ -18,3 +18,7 @@ fn assert_shape(shape []int, arrs []ndarray.NdArray) {
 		}
 	}
 }
+
+fn supress_helpers() {
+	ndarray.allocate_ndarray([1], 'F')
+}

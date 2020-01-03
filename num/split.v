@@ -156,3 +156,7 @@ fn splitter(a ndarray.NdArray, axis int, n int, div_points []int) []ndarray.NdAr
 	}
 	return subary
 }
+
+fn supress_split() {
+	ndarray.allocate_ndarray([1], 'F')
+}

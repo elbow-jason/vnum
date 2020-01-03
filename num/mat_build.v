@@ -111,3 +111,7 @@ pub fn triu_inpl(t ndarray.NdArray) {
 pub fn triu_inpl_offset(t ndarray.NdArray, offset int) {
 	triu_inpl_offset(t, offset)
 }
+
+fn supress_mat() {
+	ndarray.allocate_ndarray([1], 'F')
+}
