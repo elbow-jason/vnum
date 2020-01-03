@@ -66,24 +66,5 @@ pub fn mean_axis(a NdArray, axis int) NdArray {
 	return ret.divides(a.shape[axis])
 }
 
-// pub fn max_axis(a NdArray, axis int) NdArray {
-// 	mut ai := a.axis_iter(axis)
-// 	mut ii := 1
-// 	mut ret := ai.next()
-// 	for ii < a.shape[axis] {
-// 		ret = maximum(ret, ai.next())
-// 		ii++
-// 	}
-// 	return ret
-// }
-
-// pub fn min_axis(a NdArray, axis int) NdArray {
-// 	mut ai := a.axis_iter(axis)
-// 	mut ii := 1
-// 	mut ret := ai.next()
-// 	for ii < a.shape[axis] {
-// 		ret = minimum(ret, ai.next())
-// 		ii++
-// 	}
-// 	return ret
-// }
+// pub fn max_axis(a NdArray, axis int) NdArray { // mut ai := a.axis_iter(axis) // mut ii := 1 // mut ret := ai.next() // for ii < a.shape[axis] { // ret = maximum(ret, ai.next()) // ii++ // } // return ret // }
+// pub fn min_axis(a NdArray, axis int) NdArray { // mut ai := a.axis_iter(axis) // mut ii := 1 // mut ret := ai.next() // for ii < a.shape[axis] { // ret = minimum(ret, ai.next()) // ii++ // } // return ret // }

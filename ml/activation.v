@@ -9,7 +9,7 @@ pub:
 
 struct CostFunction {
 pub:
-	call fn(f64, f64) (f64, f64)
+	call fn(f64, f64)(f64,f64)
 }
 
 fn _sigmoid(value f64) f64 {
@@ -131,7 +131,7 @@ pub fn relu() ActivationFunction {
 }
 
 fn l_relu_fn(value f64) (f64,f64) {
-	return _l_relu(value, 0.01), _l_relu_prime(value, 0.01)
+	return _l_relu(value, 0.01),_l_relu_prime(value, 0.01)
 }
 
 pub fn l_relu() ActivationFunction {
@@ -141,7 +141,6 @@ pub fn l_relu() ActivationFunction {
 }
 
 // cost fns
-
 fn _quadratic_cost(expected f64, actual f64) f64 {
 	return 0.5 * math.pow(actual - expected, 2)
 }
@@ -150,21 +149,27 @@ fn _cross_entropy_cost(expected f64, actual f64) f64 {
 	if expected == 1.0 {
 		if actual < 0.000001 {
 			return 10.0
-		} else if actual == 1.0 {
+		}
+		else if actual == 1.0 {
 			return 0.0
-		} else {
+		}
+		else {
 			return -1.0 * math.log_n(actual, math.e)
 		}
-	} else if expected == 0.0 {
+	}
+	else if expected == 0.0 {
 		if actual >= 0.999999 {
 			return 10.0
-		} else if actual == 0.0 {
-			return 0.0
-		} else {
-			return -1.0 * math.log_n(1.0 - actual, math.e) 
 		}
-	} else {
-		panic("Expected value must be 0 or 1 for cross entropy cost")
+		else if actual == 0.0 {
+			return 0.0
+		}
+		else {
+			return -1.0 * math.log_n(1.0 - actual, math.e)
+		}
+	}
+	else {
+		panic('Expected value must be 0 or 1 for cross entropy cost')
 	}
 }
 
@@ -176,12 +181,12 @@ fn _cross_entropy_cost_derivative(expected f64, actual f64) f64 {
 	return actual - expected
 }
 
-fn quadratic_cost_fn(expected f64, actual f64) (f64, f64) {
-	return _quadratic_cost(expected, actual), _quadratic_cost_derivative(expected, actual)
+fn quadratic_cost_fn(expected f64, actual f64) (f64,f64) {
+	return _quadratic_cost(expected, actual),_quadratic_cost_derivative(expected, actual)
 }
 
-fn cross_entropy_cost_fn(expected f64, actual f64) (f64, f64) {
-	return _cross_entropy_cost(expected, actual), _cross_entropy_cost_derivative(expected, actual)
+fn cross_entropy_cost_fn(expected f64, actual f64) (f64,f64) {
+	return _cross_entropy_cost(expected, actual),_cross_entropy_cost_derivative(expected, actual)
 }
 
 pub fn quadratic() CostFunction {

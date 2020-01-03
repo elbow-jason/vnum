@@ -29,7 +29,6 @@ pub fn create_layer(n_type string, l_size int, activation_function ActivationFun
 		activations: mat.copy('C')
 		sigma_primes: mat.copy('C')
 	}
-
 	for i := 0; i < l_size; i++ {
 		neuron := create_neuron(n_type)
 		neurons[neuron.id] = neuron
@@ -43,9 +42,9 @@ pub fn create_layer(n_type string, l_size int, activation_function ActivationFun
 }
 
 pub fn (l Layer) str() string {
-	mut s := ""
-	s += "Layer Type: $l.n_type\n"
-	s += "Neurons:\n$l.neurons\n"
+	mut s := ''
+	s += 'Layer Type: $l.n_type\n'
+	s += 'Neurons:\n$l.neurons\n'
 	return s
 }
 
@@ -54,5 +53,5 @@ pub fn (l Layer) size() int {
 }
 
 fn supress_ndarray() {
-	ndarray.allocate_ndarray([1], "C")
+	ndarray.allocate_ndarray([1], 'C')
 }

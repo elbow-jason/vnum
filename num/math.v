@@ -1,7 +1,6 @@
 module num
 
 import vnum.ndarray
-
 // t + t
 pub fn add(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
 	return a.add(b)
@@ -71,7 +70,6 @@ pub fn divide(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
 pub fn divide_outer(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
 	return ndarray.op_outer(a, b, ndarray.divide_)
 }
-
 
 // t / 6
 pub fn divides(a ndarray.NdArray, b f64) ndarray.NdArray {

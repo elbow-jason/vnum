@@ -175,7 +175,6 @@ fn format_float(v f64, notation bool) string {
 
 fn max_str_len(a NdArray) int {
 	mut mx := 0
-
 	for iter := a.iter(); !iter.done; iter.next() {
 		val := format_float(*iter.ptr, false)
 		if val.len > mx {

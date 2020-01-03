@@ -2,7 +2,6 @@ module num
 
 import vnum.ndarray
 import math
-
 // acos(t)
 pub fn acos(a ndarray.NdArray) ndarray.NdArray {
 	return a.apply(math.cos)

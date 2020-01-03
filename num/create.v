@@ -1,15 +1,12 @@
 module num
 
 import vnum.ndarray
-
-// Return a new array of given shape and type, 
-// without initializing entries.
+// Return a new array of given shape and type, // without initializing entries.
 pub fn empty(shape []int) ndarray.NdArray {
 	return ndarray.allocate_ndarray(shape, 'C')
 }
 
-// Return a new array with the same shape and type as a 
-// given array.
+// Return a new array with the same shape and type as a // given array.
 pub fn empty_like(t ndarray.NdArray) ndarray.NdArray {
 	return empty(t.shape)
 }
@@ -29,9 +26,7 @@ pub fn eye(m int, n int, k int) ndarray.NdArray {
 	return ret
 }
 
-// Return the identity array.
-// 
-// The identity array is a square array with ones on the main diagonal.
+// Return the identity array. //  // The identity array is a square array with ones on the main diagonal.
 pub fn identity(n int) ndarray.NdArray {
 	return eye(n, n, 0)
 }

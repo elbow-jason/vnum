@@ -74,7 +74,7 @@ pub fn (n mut Neuron) activate(activation_function ActivationFunction, synapse_m
 		sum += synapse_map[i].propogate_forward(neuron_map)
 	}
 	n.input_sum = sum + n.bias
-	activation, sigma_prime := activation_function.call(n.input_sum)
+	activation,sigma_prime := activation_function.call(n.input_sum)
 	n.activation = activation
 	n.sigma_prime = sigma_prime
 }

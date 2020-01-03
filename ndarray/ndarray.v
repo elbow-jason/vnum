@@ -5,13 +5,13 @@ import math
 
 pub struct NdArray {
 pub mut:
-	shape    []int
-	strides  []int
-	ndims    int
-	size     int
-	flags    ArrayFlags
+	shape   []int
+	strides []int
+	ndims   int
+	size    int
+	flags   ArrayFlags
 pub:
-	buffer   &f64
+	buffer  &f64
 }
 
 pub fn (t NdArray) get(idx []int) f64 {
@@ -51,7 +51,8 @@ pub fn (t NdArray) slice(idx ...[]int) NdArray {
 				fi += t.shape[i]
 			}
 			indexer << fi
-		} else if dex.len == 2 {
+		}
+		else if dex.len == 2 {
 			fi = dex[0]
 			li = dex[1]
 			if fi < 0 {
@@ -64,10 +65,12 @@ pub fn (t NdArray) slice(idx ...[]int) NdArray {
 				newshape[i] = 0
 				newstrides[i] = 0
 				indexer << fi
-			} else {
+			}
+			else {
 				newshape[i] = li - fi
 			}
-		} else if dex.len == 3 {
+		}
+		else if dex.len == 3 {
 			fi = dex[0]
 			li = dex[1]
 			step := dex[2]
@@ -84,14 +87,14 @@ pub fn (t NdArray) slice(idx ...[]int) NdArray {
 			indexer << fi
 		}
 	}
-	newshape_, newstrides_ := internal.filter_shape_not_strides(newshape, newstrides)
+	newshape_,newstrides_ := internal.filter_shape_not_strides(newshape, newstrides)
 	mut ptr := t.buffer
 	mut i := 0
 	for i < indexer.len {
 		ptr += t.strides[i] * indexer[i]
 		i++
 	}
-	mut ret := NdArray {
+	mut ret := NdArray{
 		shape: newshape_
 		strides: newstrides_
 		ndims: newshape_.len
@@ -103,7 +106,7 @@ pub fn (t NdArray) slice(idx ...[]int) NdArray {
 	return ret
 }
 
-pub fn (t NdArray) slice_hilo(idx1 []int, idx2[]int) NdArray {
+pub fn (t NdArray) slice_hilo(idx1 []int, idx2 []int) NdArray {
 	mut newshape := t.shape.clone()
 	mut newstrides := t.strides.clone()
 	newflags := default_flags('C')
@@ -132,15 +135,14 @@ pub fn (t NdArray) slice_hilo(idx1 []int, idx2[]int) NdArray {
 		}
 		ii++
 	}
-	newshape_, newstrides_ := internal.filter_shape_not_strides(newshape, newstrides)
-
+	newshape_,newstrides_ := internal.filter_shape_not_strides(newshape, newstrides)
 	mut ptr := t.buffer
 	mut i := 0
 	for i < t.ndims {
 		ptr += t.strides[i] * idx[i]
 		i++
 	}
-	mut ret := NdArray {
+	mut ret := NdArray{
 		shape: newshape_
 		strides: newstrides_
 		ndims: newshape_.len
@@ -149,7 +151,7 @@ pub fn (t NdArray) slice_hilo(idx1 []int, idx2[]int) NdArray {
 		flags: newflags
 	}
 	ret.update_flags(all_flags())
-	return ret	
+	return ret
 }
 
 pub fn (t NdArray) iter() NdIter {
@@ -170,7 +172,7 @@ pub fn (t NdArray) axis(i int) AxesIter {
 	strides.delete(i)
 	ptr := t.buffer
 	inc := t.strides[i]
-	tmp := NdArray {
+	tmp := NdArray{
 		shape: shape
 		strides: strides
 		buffer: ptr
@@ -219,7 +221,6 @@ pub fn (t NdArray) str() string {
 
 pub fn (t NdArray) copy(order string) NdArray {
 	mut ret := allocate_ndarray(t.shape, order)
-
 	for iter := ret.iter_with(t); !iter.done; iter.next() {
 		*iter.ptr_a = *iter.ptr_b
 	}
@@ -302,7 +303,7 @@ pub fn (t NdArray) reshape(shape []int) NdArray {
 		ret.ndims = newshape.len
 	}
 	ret.update_flags(all_flags())
-	return ret	
+	return ret
 }
 
 pub fn (t NdArray) transpose(order []int) NdArray {
@@ -336,7 +337,7 @@ pub fn (t NdArray) transpose(order []int) NdArray {
 		ii++
 	}
 	ret.update_flags(all_flags())
-	return ret	
+	return ret
 }
 
 pub fn (t NdArray) t() NdArray {
@@ -356,8 +357,8 @@ pub fn (t NdArray) ravel() NdArray {
 	return t.reshape([-1])
 }
 
-pub fn (lhs NdArray) + (rhs NdArray) NdArray {
-	a, b := broadcast_arrays(lhs, rhs)
+pub fn (lhs NdArray) +(rhs NdArray) NdArray {
+	a,b := broadcast_arrays(lhs, rhs)
 	ret := a.copy('C')
 	for iter := ret.iter_with(b); !iter.done; iter.next() {
 		*iter.ptr_a += *iter.ptr_b
@@ -365,8 +366,8 @@ pub fn (lhs NdArray) + (rhs NdArray) NdArray {
 	return ret
 }
 
-pub fn (lhs NdArray) - (rhs NdArray) NdArray {
-	a, b := broadcast_arrays(lhs, rhs)
+pub fn (lhs NdArray) -(rhs NdArray) NdArray {
+	a,b := broadcast_arrays(lhs, rhs)
 	ret := a.copy('C')
 	for iter := ret.iter_with(b); !iter.done; iter.next() {
 		*iter.ptr_a -= *iter.ptr_b
@@ -374,8 +375,8 @@ pub fn (lhs NdArray) - (rhs NdArray) NdArray {
 	return ret
 }
 
-pub fn (lhs NdArray) * (rhs NdArray) NdArray {
-	a, b := broadcast_arrays(lhs, rhs)
+pub fn (lhs NdArray) *(rhs NdArray) NdArray {
+	a,b := broadcast_arrays(lhs, rhs)
 	ret := a.copy('C')
 	for iter := ret.iter_with(b); !iter.done; iter.next() {
 		*iter.ptr_a *= *iter.ptr_b
@@ -383,8 +384,8 @@ pub fn (lhs NdArray) * (rhs NdArray) NdArray {
 	return ret
 }
 
-pub fn (lhs NdArray) / (rhs NdArray) NdArray {
-	a, b := broadcast_arrays(lhs, rhs)
+pub fn (lhs NdArray) /(rhs NdArray) NdArray {
+	a,b := broadcast_arrays(lhs, rhs)
 	ret := a.copy('C')
 	for iter := ret.iter_with(b); !iter.done; iter.next() {
 		*iter.ptr_a /= *iter.ptr_b

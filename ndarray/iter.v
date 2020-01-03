@@ -2,7 +2,7 @@ module ndarray
 
 struct NdIter {
 pub mut:
-	ptr 	&f64
+	ptr     &f64
 	done    bool
 	shape   []int
 	strides []int
@@ -37,14 +37,14 @@ pub fn (iter mut NdIter) next() bool {
 
 struct NdIterWith {
 pub mut:
-	ptr_a      &f64
-	ptr_b 	   &f64
-	done       bool
-	shape      []int
-	strides_a  []int
-	strides_b  []int
-	track      []int
-	dim        int
+	ptr_a     &f64
+	ptr_b     &f64
+	done      bool
+	shape     []int
+	strides_a []int
+	strides_b []int
+	track     []int
+	dim       int
 }
 
 pub fn (iter mut NdIterWith) next() bool {
@@ -88,7 +88,7 @@ pub mut:
 pub fn (iter mut AxesIter) next() NdArray {
 	ret := iter.tmp
 	iter.ptr += iter.inc
-	iter.tmp = NdArray {
+	iter.tmp = NdArray{
 		buffer: iter.ptr
 		shape: ret.shape
 		strides: iter.strides
