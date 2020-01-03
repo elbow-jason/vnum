@@ -1,11 +1,11 @@
-module linalg
+module la
 
-import vnum.vn
+import vnum.num
 import vnum.ndarray
 import math
 
 pub fn block_diag(arrs []ndarray.NdArray) ndarray.NdArray {
-	blocks := arrs.map(vn.atleast_2d(it))
+	blocks := arrs.map(num.atleast_2d(it))
 	bad := blocks.filter(it.ndims > 2)
 	if bad.len > 0 {
 		panic("Only two dimensional tensors are supported")
@@ -18,7 +18,7 @@ pub fn block_diag(arrs []ndarray.NdArray) ndarray.NdArray {
 	mn := shapet.sum_axis(0)
 	mut r := 0
 	mut c := 0
-	ret := vn.zeros([int(mn.get([0])), int(mn.get([1]))])
+	ret := num.zeros([int(mn.get([0])), int(mn.get([1]))])
 	for block in blocks {
 		rr := block.shape[0]
 		cc := block.shape[1]

@@ -142,15 +142,14 @@ pub fn broadcast_arrays(a NdArray, b NdArray) (NdArray, NdArray) {
 }
 
 pub fn expand_dims(a NdArray, axis int) NdArray {
-	shape := a.shape
 	mut newshape := []int
 	newaxis := match(axis < 0) {
 		true { axis + a.ndims + 1 }
 		else { axis }
 	}
-	newshape << a.shape[..axis]
+	newshape << a.shape[..newaxis]
 	newshape << 1
-	newshape << a.shape[axis..]
+	newshape << a.shape[newaxis..]
 	return a.reshape(newshape)
 }
 

@@ -1,7 +1,7 @@
-module linalg
+module la
 
 import vnum.ndarray
-import vnum.vn
+import vnum.num
 
 pub fn dot(a ndarray.NdArray, b ndarray.NdArray) f64 {
 	return wrap_ddot(a, b)

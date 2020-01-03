@@ -1,7 +1,7 @@
-module linalg
+module la
 
 import vnum.ndarray
-import vnum.vn
+import vnum.num
 
 enum matrix_layout {
 	row_major = 101
@@ -121,7 +121,7 @@ fn wrap_dger(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
 	if a.ndims != 1 || b.ndims != 1 {
 		panic('Tensors must be one dimensional')
 	}
-	out := vn.empty([a.size, b.size])
+	out := num.empty([a.size, b.size])
 	C.cblas_dger(matrix_layout.row_major, a.size, b.size, 1.0, a.buffer, a.strides[0], b.buffer, b.strides[0], out.buffer, out.shape[1])
 	return out
 }
@@ -153,10 +153,10 @@ fn wrap_dpotrf(a ndarray.NdArray, uplo byte) ndarray.NdArray {
 		panic('Tensor is not positive definite')
 	}
 	if uplo == `U` {
-		vn.triu_inpl(ret)
+		num.triu_inpl(ret)
 	}
 	else if uplo == `L` {
-		vn.tril_inpl(ret)
+		num.tril_inpl(ret)
 	}
 	else {
 		panic('Invalid option provided for UPLO')
@@ -203,7 +203,7 @@ fn wrap_inv(a ndarray.NdArray) ndarray.NdArray {
 }
 
 fn wrap_matmul(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
-	dest := vn.empty([a.shape[0], b.shape[1]])
+	dest := num.empty([a.shape[0], b.shape[1]])
 	ma := match (a.flags.contiguous) {
 		true{
 			a
@@ -226,7 +226,7 @@ fn wrap_eigh(a ndarray.NdArray) []ndarray.NdArray {
 	assert_square_matrix(a)
 	ret := a.copy('F')
 	n := ret.shape[0]
-	w := vn.empty([n])
+	w := num.empty([n])
 	jobz := `V`
 	uplo := `L`
 	info := 0
@@ -242,7 +242,7 @@ fn wrap_eig(a ndarray.NdArray) []ndarray.NdArray {
 	assert_square_matrix(a)
 	ret := a.copy('F')
 	n := ret.shape[0]
-	wr := vn.empty([n])
+	wr := num.empty([n])
 	wl := wr.copy('C')
 	vl := ndarray.allocate_ndarray([n, n], 'F')
 	vr := vl.copy('C')
@@ -264,7 +264,7 @@ pub fn wrap_eigvalsh(a ndarray.NdArray) ndarray.NdArray {
 	jobz := `V`
 	uplo := `L`
 	info := 0
-	w := vn.empty([n])
+	w := num.empty([n])
 	workspace := allocate_workspace(3 * n - 1)
 	C.dsyev_(&jobz, &uplo, &n, ret.buffer, &n, w.buffer, workspace.work, &workspace.size, &info)
 	if info > 0 {
@@ -277,7 +277,7 @@ pub fn wrap_eigvals(a ndarray.NdArray) ndarray.NdArray {
 	assert_square_matrix(a)
 	ret := a.copy('F')
 	n := ret.shape[0]
-	wr := vn.empty([n])
+	wr := num.empty([n])
 	wl := wr.copy('C')
 	vl := ndarray.allocate_ndarray([n, n], 'F')
 	vr := vl.copy('C')
@@ -314,15 +314,15 @@ pub fn wrap_hessenberg(a ndarray.NdArray) ndarray.NdArray {
 		return ret
 	}
 	n := ret.shape[0]
-	s := vn.empty([n])
+	s := num.empty([n])
 	ilo := 0
 	ihi := 0
 	job := `B`
 	info := 0
 	C.dgebal_(&job, &n, ret.buffer, &n, &ilo, &ihi, s.buffer, &info)
-	tau := vn.empty([n])
+	tau := num.empty([n])
 	workspace := allocate_workspace(n)
 	C.dgehrd_(&n, &ilo, &ihi, ret.buffer, &n, tau.buffer, workspace.work, &workspace.size, &info)
-	vn.triu_inpl_offset(ret, -1)
+	num.triu_inpl_offset(ret, -1)
 	return ret
 }

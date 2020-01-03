@@ -1,4 +1,4 @@
-module vn
+module num
 
 import vnum.ndarray
 
