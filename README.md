@@ -42,10 +42,10 @@ Use the `vnum.linalg` module for powerful `BLAS` backed routines.
 
 ```sh
 >>> import vnum.num
->>> import vnum.linalg
+>>> import vnum.la
 >>> a := num.seq(60).reshape([3, 4, 5])
 >>> b := num.seq(24).reshape([4, 3, 2])
->>> res := linalg.tensordot(a, b, [1, 0], [0, 1])
+>>> res := la.tensordot(a, b, [1, 0], [0, 1])
 >>> res
 [[4400, 4730],
  [4532, 4874],
