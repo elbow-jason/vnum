@@ -1,4 +1,4 @@
-module linalg
+module la
 
 #flag -lopenblas -llapack
 #include "cblas.h"

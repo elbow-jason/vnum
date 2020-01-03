@@ -1,410 +1,85 @@
 module num
 
-import vnum.base
+import vnum.ndarray
 import math
 
-fn squash_warning_math() {
-	base.allocate_tensor([1])
+// t + t
+pub fn add(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+	return a.add(b)
 }
 
-fn add_(a f64, b f64) f64 {
-	return a + b
+// t outer add t
+pub fn add_outer(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+	return ndarray.op_outer(a, b, ndarray.add_)
 }
 
-fn subtract_(a f64, b f64) f64 {
-	return a - b
+// t + 6
+pub fn adds(a ndarray.NdArray, b f64) ndarray.NdArray {
+	return a.adds(b)
 }
 
-fn divide_(a f64, b f64) f64 {
-	return a / b
+// 6 + t
+pub fn sadd(a f64, b ndarray.NdArray) ndarray.NdArray {
+	return b.sadd(a)
 }
 
-fn multiply_(a f64, b f64) f64 {
-	return a * b
+// t - t
+pub fn subtract(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+	return a.subtract(b)
 }
 
-fn power_(a f64, b f64) f64 {
-	return math.pow(a, b)
+// t outer subtract t
+pub fn subtract_outer(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+	return ndarray.op_outer(a, b, ndarray.subtract_)
 }
 
-fn minimum_(a f64, b f64) f64 {
-	if a < b {
-		return a
-	}
-	return b
+// t - 6
+pub fn subtracts(a ndarray.NdArray, b f64) ndarray.NdArray {
+	return a.subtracts(b)
 }
 
-fn maximum_(a f64, b f64) f64 {
-	if a > b {
-		return a
-	}
-	return b
+// 6 - t
+pub fn ssubtract(a f64, b ndarray.NdArray) ndarray.NdArray {
+	return b.ssubtract(a)
 }
 
-fn array_equal(a []int, b []int) bool {
-	if a.len != b.len {
-		return false
-	}
-	for i := 0; i < a.len; i++ {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
+// t * t
+pub fn multiply(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+	return a.multiply(b)
 }
 
-pub fn broadcast_tensors(a base.Tensor, b base.Tensor) []base.Tensor {
-	bshape := broadcastable(a, b)
-	mut ret := []base.Tensor
-	if !array_equal(a.shape, bshape) {
-		ret << broadcast_to(a, bshape)
-	}
-	else {
-		ret << a
-	}
-	if !array_equal(b.shape, bshape) {
-		ret << broadcast_to(b, bshape)
-	}
-	else {
-		ret << b
-	}
-	return ret
+// t outer multiply t
+pub fn multiply_outer(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+	return ndarray.op_outer(a, b, ndarray.multiply_)
 }
 
-fn op(a base.Tensor, b base.Tensor, op fn(f64, f64)f64) base.Tensor {
-	tns := match array_equal(a.shape, b.shape) {
-		true{
-			[a, b]
-		}
-		else {
-			broadcast_tensors(a, b)}
-	}
-	ret := tns[0].copy('C')
-	bb := tns[1]
-	mut ret_iter := ret.flat_iter()
-	mut rhs_iter := bb.flat_iter()
-	mut ii := 0
-	for ii < ret.size {
-		mut ptr := ret_iter.next()
-		*ptr = op(*ptr, *rhs_iter.next())
-		ii++
-	}
-	return ret
+// t * 6
+pub fn multiplys(a ndarray.NdArray, b f64) ndarray.NdArray {
+	return a.multiplys(b)
 }
 
-fn op1d(a base.Tensor, op fn(f64)f64) base.Tensor {
-	ret := a.copy('C')
-	mut ret_iter := ret.flat_iter()
-	for i := 0; i < a.size; i++ {
-		mut ptr := ret_iter.next()
-		*ptr = op(*ptr)
-	}
-	return ret
+// 6 * t
+pub fn smultiply(a f64, b ndarray.NdArray) ndarray.NdArray {
+	return b.smultiply(a)
 }
 
-fn op_scalar(a base.Tensor, b f64, op fn(f64, f64)f64) base.Tensor {
-	ret := a.copy('C')
-	mut ret_iter := ret.flat_iter()
-	mut ii := 0
-	for ii < a.size {
-		mut ptr := ret_iter.next()
-		*ptr = op(*ptr, b)
-		ii++
-	}
-	return ret
+// t / t
+pub fn divide(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+	return a.divide(b)
 }
 
-fn op_scalar_lhs(a f64, b base.Tensor, op fn(f64, f64)f64) base.Tensor {
-	ret := b.copy('C')
-	mut ret_iter := ret.flat_iter()
-	mut ii := 0
-	for ii < b.size {
-		mut ptr := ret_iter.next()
-		*ptr = op(a, *ptr)
-		ii++
-	}
-	return ret	
+// t outer divide t
+pub fn divide_outer(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+	return ndarray.op_outer(a, b, ndarray.divide_)
 }
 
-fn op_outer(a base.Tensor, b base.Tensor, op fn(f64, f64)f64) base.Tensor {
-	mut shape := a.shape.clone()
-	shape << b.shape
-	ret := empty(shape)
-
-	mut ret_iter := ret.flat_iter()
-	mut a_iter := a.flat_iter()
-
-	for i := 0; i < a.size; i++ {
-		av := *a_iter.next()
-		mut b_iter := b.flat_iter()
-		for j := 0; j < b.size; j++ {
-			mut ptr := ret_iter.next()
-			*ptr = op(av, *b_iter.next())
-		}
-	}
-	return ret
-}
-
-pub fn add(a base.Tensor, b base.Tensor) base.Tensor {
-	return op(a, b, add_)
-}
-
-pub fn add_scalar(a base.Tensor, b f64) base.Tensor {
-	return op_scalar(a, b, add_)
-}
-
-pub fn scalar_add(a f64, b base.Tensor) base.Tensor {
-	return op_scalar_lhs(a, b, add_)
-}
-
-pub fn add_outer(a base.Tensor, b base.Tensor) base.Tensor {
-	return op_outer(a, b, add_)
-}
-
-pub fn subtract(a base.Tensor, b base.Tensor) base.Tensor {
-	return op(a, b, subtract_)
-}
-
-pub fn subtract_scalar(a base.Tensor, b f64) base.Tensor {
-	return op_scalar(a, b, subtract_)
-}
-
-pub fn scalar_subtract(a f64, b base.Tensor) base.Tensor {
-	return op_scalar_lhs(a, b, subtract_)
-}
-
-pub fn subtract_outer(a base.Tensor, b base.Tensor) base.Tensor {
-	return op_outer(a, b, subtract_)
-}
-
-pub fn divide(a base.Tensor, b base.Tensor) base.Tensor {
-	return op(a, b, divide_)
-}
-
-pub fn divide_scalar(a base.Tensor, b f64) base.Tensor {
-	return op_scalar(a, b, divide_)
-}
-
-pub fn scalar_divide(a f64, b base.Tensor) base.Tensor {
-	return op_scalar_lhs(a, b, divide_)
-}
-
-pub fn divide_outer(a base.Tensor, b base.Tensor) base.Tensor {
-	return op_outer(a, b, divide_)
-}
-
-pub fn multiply(a base.Tensor, b base.Tensor) base.Tensor {
-	return op(a, b, multiply_)
-}
-
-pub fn multiply_scalar(a base.Tensor, b f64) base.Tensor {
-	return op_scalar(a, b, multiply_)
-}
-
-pub fn scalar_multiply(a f64, b base.Tensor) base.Tensor {
-	return op_scalar_lhs(a, b, multiply_)
-}
-
-pub fn multiply_outer(a base.Tensor, b base.Tensor) base.Tensor {
-	return op_outer(a, b, multiply_)
-}
-
-pub fn minimum(a base.Tensor, b base.Tensor) base.Tensor {
-	return op(a, b, minimum_)
-}
-
-pub fn minimum_scalar(a base.Tensor, b f64) base.Tensor {
-	return op_scalar(a, b, minimum_)
-}
-
-pub fn scalar_minimum(a f64, b base.Tensor) base.Tensor {
-	return op_scalar_lhs(a, b, minimum_)
-}
-
-pub fn minimum_outer(a base.Tensor, b base.Tensor) base.Tensor {
-	return op_outer(a, b, minimum_)
-}
-
-pub fn maximum(a base.Tensor, b base.Tensor) base.Tensor {
-	return op(a, b, maximum_)
-}
-
-pub fn maximum_scalar(a base.Tensor, b f64) base.Tensor {
-	return op_scalar(a, b, maximum_)
-}
-
-pub fn scalar_maximum(a f64, b base.Tensor) base.Tensor {
-	return op_scalar_lhs(a, b, maximum_)
-}
-
-pub fn maximum_outer(a base.Tensor, b base.Tensor) base.Tensor {
-	return op_outer(a, b, maximum_)
-}
-
-pub fn acos(a base.Tensor) base.Tensor {
-	return op1d(a, math.acos)
-}
-
-pub fn abs(a base.Tensor) base.Tensor {
-	return op1d(a, math.abs)
-}
-
-pub fn asin(a base.Tensor) base.Tensor {
-	return op1d(a, math.asin)
-}
-
-pub fn atan(a base.Tensor) base.Tensor {
-	return op1d(a, math.atan)
-}
-
-pub fn atan2(a base.Tensor, b base.Tensor) base.Tensor {
-	return op(a, b, math.atan2)
-}
-
-pub fn atan2_scalar(a base.Tensor, b f64) base.Tensor {
-	return op_scalar(a, b, math.atan2)
-}
-
-pub fn scalar_atan2(a f64, b base.Tensor) base.Tensor {
-	return op_scalar_lhs(a, b, math.atan2)
-}
-
-pub fn atan2_outer(a base.Tensor, b base.Tensor) base.Tensor {
-	return op_outer(a, b, math.atan2)
-}
-
-pub fn cbrt(a base.Tensor) base.Tensor {
-	return op1d(a, math.cbrt)
-}
-
-pub fn ceil(a base.Tensor) base.Tensor {
-	return op1d(a, math.ceil)
-}
-
-pub fn cos(a base.Tensor) base.Tensor {
-	return op1d(a, math.cos)
-}
-
-pub fn cosh(a base.Tensor) base.Tensor {
-	return op1d(a, math.cosh)
-}
-
-pub fn degrees(a base.Tensor) base.Tensor {
-	return op1d(a, math.degrees)
-}
-
-pub fn exp(a base.Tensor) base.Tensor {
-	return op1d(a, math.exp)
-}
-
-pub fn erf(a base.Tensor) base.Tensor {
-	return op1d(a, math.erf)
-}
-
-pub fn erfc(a base.Tensor) base.Tensor {
-	return op1d(a, math.erfc)
-}
-
-pub fn exp2(a base.Tensor) base.Tensor {
-	return op1d(a, math.exp2)
-}
-
-pub fn floor(a base.Tensor) base.Tensor {
-	return op1d(a, math.floor)
-}
-
-pub fn fmod(a base.Tensor, b base.Tensor) base.Tensor {
-	return op(a, b, math.fmod)
-}
-
-pub fn fmod_outer(a base.Tensor, b base.Tensor) base.Tensor {
-	return op_outer(a, b, math.fmod)
-}
-
-pub fn fmod_scalar(a base.Tensor, b f64) base.Tensor {
-	return op_scalar(a, b, math.fmod)
-}
-
-pub fn scalar_fmod(a f64, b base.Tensor) base.Tensor {
-	return op_scalar_lhs(a, b, math.fmod)
-}
-
-pub fn gamma(a base.Tensor) base.Tensor {
-	return op1d(a, math.gamma)
-}
-
-pub fn log(a base.Tensor) base.Tensor {
-	return op1d(a, math.log)
-}
-
-pub fn log2(a base.Tensor) base.Tensor {
-	return op1d(a, math.log2)
-}
-
-pub fn log10(a base.Tensor) base.Tensor {
-	return op1d(a, math.log10)
-}
-
-pub fn lgamma(a base.Tensor) base.Tensor {
-	return op1d(a, math.log_gamma)
-}
-
-pub fn logn(a base.Tensor, b base.Tensor) base.Tensor {
-	return op(a, b, math.log_n)
-}
-
-pub fn logn_outer(a base.Tensor, b base.Tensor) base.Tensor {
-	return op_outer(a, b, math.log_n)
-}
-
-pub fn logn_scalar(a base.Tensor, b f64) base.Tensor {
-	return op_scalar(a, b, math.log_n)
-}
-
-pub fn scalar_logn(a f64, b base.Tensor) base.Tensor {
-	return op_scalar_lhs(a, b, math.log_n)
-}
-
-pub fn pow(a base.Tensor, b base.Tensor) base.Tensor {
-	return op(a, b, math.pow)
-}
-
-pub fn pow_scalar(a base.Tensor, b f64) base.Tensor {
-	return op_scalar(a, b, math.pow)
-}
-
-pub fn scalar_pow(a f64, b base.Tensor) base.Tensor {
-	return op_scalar_lhs(a, b, math.pow)
-}
-
-pub fn pow_outer(a base.Tensor, b base.Tensor) base.Tensor {
-	return op_outer(a, b, math.pow)
-}
-
-pub fn radians(a base.Tensor) base.Tensor {
-	return op1d(a, math.radians)
-}
-
-pub fn round(a base.Tensor) base.Tensor {
-	return op1d(a, math.round)
-}
-
-pub fn sin(a base.Tensor) base.Tensor {
-	return op1d(a, math.sin)
-}
-
-pub fn sinh(a base.Tensor) base.Tensor {
-	return op1d(a, math.sinh)
-}
-
-pub fn sqrt(a base.Tensor) base.Tensor {
-	return op1d(a, math.sqrt)
-}
 
-pub fn tan(a base.Tensor) base.Tensor {
-	return op1d(a, math.tan)
+// t / 6
+pub fn divides(a ndarray.NdArray, b f64) ndarray.NdArray {
+	return a.divides(b)
 }
 
-pub fn tanh(a base.Tensor) base.Tensor {
-	return op1d(a, math.tanh)
+// 6 / t
+pub fn sdivide(a f64, b ndarray.NdArray) ndarray.NdArray {
+	return b.sdivide(a)
 }
