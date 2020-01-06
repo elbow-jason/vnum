@@ -1,9 +1,37 @@
 module ndarray
 
-fn max(a NdArray) f64 {
+
+// sum reduces an iterator to a scalar value, the sum of an
+// entire ndarray
+pub fn (iter NdIter) sum() f64 {
+	mut res := 0.0
+	for i := iter; !i.done; i.next() {
+		res += *i.ptr
+	}
+	return res
+}
+
+// prod reduces an iterator to a scalar value, the product of an
+// ndarray
+pub fn (iter NdIter) prod() f64 {
+	mut res := 1.0
+	for i := iter; !i.done; i.next() {
+		res *= *i.ptr
+	}
+	return res
+}
+
+// mean computes the mean of an iterator, exhausting the iterator in
+// the process
+pub fn (iter NdIter) mean() f64 {
+	return iter.sum() / iter.size
+}
+
+// max computes the max of an ndarray from its iterator
+pub fn (iterator NdIter) max() f64 {
 	mut mx := 0.0
 	mut i := 0
-	for iter := a.iter(); !iter.done; iter.next() {
+	for iter := iterator; !iter.done; iter.next() {
 		if i == 0 {
 			mx = *iter.ptr
 		}
@@ -15,10 +43,11 @@ fn max(a NdArray) f64 {
 	return mx
 }
 
-fn min(a NdArray) f64 {
+// min computes the minimum of an ndarray from an iterator
+pub fn (iterator NdIter) min() f64 {
 	mut mn := 0.0
 	mut i := 0
-	for iter := a.iter(); !iter.done; iter.next() {
+	for iter := iterator; !iter.done; iter.next() {
 		if i == 0 {
 			mn = *iter.ptr
 		}
@@ -30,41 +59,69 @@ fn min(a NdArray) f64 {
 	return mn
 }
 
-fn sum(a NdArray) f64 {
-	mut res := 0.0
-	for i := a.iter(); !i.done; i.next() {
-		res += *i.ptr
+// ptp computes the difference between the maximum value of an
+// ndarray and the minimum value
+pub fn (iterator NdIter) ptp() f64 {
+	mut mx := 0.0
+	mut mn := 0.0
+	mut i := 0
+	for iter := iterator; !iter.done; iter.next() {
+		if i == 0 {
+			mx = *iter.ptr
+			mn = *iter.ptr
+		}
+		if *iter.ptr > mx {
+			mx = *iter.ptr
+		} else if *iter.ptr < mn {
+			mn = *iter.ptr
+		}
+		i++
 	}
-	return res
+	return mx - mn
 }
 
-fn prod(a NdArray) f64 {
-	mut res := 1.0
-	for i := a.iter(); !i.done; i.next() {
-		res *= *i.ptr
-	}
-	return res
-}
-
-fn mean(a NdArray) f64 {
-	return sum(a) / a.size
-}
-
-fn sum_axis(a NdArray, axis int) NdArray {
-	mut ai := a.axis(axis)
+// sum computes the sum of an ndarray along an axis specified by
+// an axis iterator
+pub fn (iterator AxesIter) sum() NdArray {
+	mut ai := iterator
 	mut ii := 1
 	ret := ai.next().copy('C')
-	for ii < a.shape[axis] {
-		ret.add_inpl(ai.next())
+	for ii < ai.size {
+		ret.with_inpl(ai.next()).add()
 		ii++
 	}
 	return ret
 }
 
-pub fn mean_axis(a NdArray, axis int) NdArray {
-	ret := sum_axis(a, axis)
-	return ret.divides(a.shape[axis])
+// mean returns the mean of an ndarray along an axis specified by
+// an axis iterator
+pub fn (iterator AxesIter) mean() NdArray {
+	ret := iterator.sum()
+	return ret.scalar(iterator.size).divide()
 }
 
-// pub fn max_axis(a NdArray, axis int) NdArray { // mut ai := a.axis_iter(axis) // mut ii := 1 // mut ret := ai.next() // for ii < a.shape[axis] { // ret = maximum(ret, ai.next()) // ii++ // } // return ret // }
-// pub fn min_axis(a NdArray, axis int) NdArray { // mut ai := a.axis_iter(axis) // mut ii := 1 // mut ret := ai.next() // for ii < a.shape[axis] { // ret = minimum(ret, ai.next()) // ii++ // } // return ret // }
+// minimum returns the minimum of an ndarray along an axis specified
+// by an axis iterator
+pub fn (iterator AxesIter) minimum() NdArray {
+	mut ai := iterator
+	mut ii := 1
+	ret := ai.next().copy('C')
+	for ii < ai.size {
+		ret.with_inpl(ai.next()).minimum()
+		ii++
+	}
+	return ret
+}
+
+// maximum returns the maximum of an ndarray along an axis specified
+// by an axis iterator
+pub fn (iterator AxesIter) maximum() NdArray {
+	mut ai := iterator
+	mut ii := 1
+	ret := ai.next().copy('C')
+	for ii < ai.size {
+		ret.with_inpl(ai.next()).maximum()
+		ii++
+	}
+	return ret
+}

@@ -3,6 +3,9 @@ module ndarray
 import vnum.internal
 import math
 
+// The core array object.  Contains information about the memory
+// layout of data (flags), as well as the shape and strides describing
+// how to iterate over data.
 pub struct NdArray {
 pub mut:
 	shape   []int
@@ -14,6 +17,8 @@ pub:
 	buffer  &f64
 }
 
+
+// get gets a scalar value from an ndarray at a given index
 pub fn (t NdArray) get(idx []int) f64 {
 	mut buf := t.buffer
 	for i := 0; i < t.ndims; i++ {
@@ -24,6 +29,8 @@ pub fn (t NdArray) get(idx []int) f64 {
 	return *(buf + offset(t, idx))
 }
 
+// set sets a provided index to a provided scalar value in an
+// ndarray
 pub fn (t NdArray) set(idx []int, val f64) {
 	mut buf := t.buffer
 	for i := 0; i < t.ndims; i++ {
@@ -35,6 +42,9 @@ pub fn (t NdArray) set(idx []int, val f64) {
 	*ptr = val
 }
 
+// slice returns a view of an ndarray from a variadic list
+// of indexing operations.  The returned view does not
+// own its new data, but shares data with another ndarray
 pub fn (t NdArray) slice(idx ...[]int) NdArray {
 	mut newshape := t.shape.clone()
 	mut newstrides := t.strides.clone()
@@ -106,6 +116,11 @@ pub fn (t NdArray) slice(idx ...[]int) NdArray {
 	return ret
 }
 
+// slice_hilo returns a view of an array from a list of starting
+// indices and a list of closing indices.  This is slightly less
+// general than slice, but is used for internal methods since
+// it doesn't use variadic arguments.  This method will be used
+// until V has better support for 2D arrays.
 pub fn (t NdArray) slice_hilo(idx1 []int, idx2 []int) NdArray {
 	mut newshape := t.shape.clone()
 	mut newstrides := t.strides.clone()
@@ -154,10 +169,13 @@ pub fn (t NdArray) slice_hilo(idx1 []int, idx2 []int) NdArray {
 	return ret
 }
 
+// iter returns a flat iterator over an ndarray, commonly used
+// for reduction operations
 pub fn (t NdArray) iter() NdIter {
 	return NdIter{
 		ptr: offset_ptr(t.buffer, t.shape, t.strides)
 		done: false
+		size: t.size
 		shape: t.shape
 		strides: t.strides
 		track: [0].repeat(t.ndims)
@@ -165,6 +183,8 @@ pub fn (t NdArray) iter() NdIter {
 	}
 }
 
+// axis returns an iterator over the axis of an ndarray, commonly
+// used for reduction operations along an axis.
 pub fn (t NdArray) axis(i int) AxesIter {
 	mut shape := t.shape.clone()
 	shape.delete(i)
@@ -187,47 +207,132 @@ pub fn (t NdArray) axis(i int) AxesIter {
 		tmp: tmp
 		inc: inc
 		axis: i
+		size: t.shape[i]
 	}
 }
 
-pub fn (t NdArray) iter_with(other NdArray) NdIterWith {
+// axis_with_dims returns an iterator along the axis
+// of an ndarray where the axis in question is not removed
+// from the resulting array, but instead reduced to 1.
+//
+// This makes broadcasting operations on the result more 
+// consistent.
+pub fn (t NdArray) axis_with_dims(i int) AxesIter {
+	mut shape := t.shape.clone()
+	shape[i] = 1
+	mut strides := t.strides.clone()
+	strides[i] = 0
+	ptr := t.buffer
+	inc := t.strides[i]
+	tmp := NdArray{
+		shape: shape
+		strides: strides
+		buffer: ptr
+		size: internal.shape_size(shape)
+		ndims: shape.len
+		flags: no_flags()
+	}
+	return AxesIter{
+		ptr: ptr
+		shape: shape
+		strides: strides
+		tmp: tmp
+		inc: inc
+		axis: i
+		size: t.shape[i]
+	}
+}
+
+// with returns an iterator through two arrays pairwise.
+// Broadcasts inputs to match shape, independent of strides,
+// Stores of a copy of an ndarray that the result of any modification
+// operation will be stored in.
+pub fn (t NdArray) with(other NdArray) NdIterWith {
+	a, b := broadcast_arrays(t, other)
+	ret := a.copy('C')
 	return NdIterWith{
+		ret: ret
+		ptr_a: offset_ptr(ret.buffer, ret.shape, ret.strides)
+		ptr_b: offset_ptr(b.buffer, b.shape, b.strides)
+		done: false
+		shape: ret.shape
+		strides_a: ret.strides
+		strides_b: b.strides
+		track: [0].repeat(ret.ndims)
+		dim: ret.ndims - 1
+	}
+}
+
+// with returns an iterator through two arrays pairwise.
+// Broadcasts inputs to match shape, independent of strides,
+// Stores of a reference of an ndarray that the result of 
+// any modification operation will be stored in.
+pub fn (t NdArray) with_inpl(other NdArray) NdIterWith {
+	b := broadcast_to(other, t.shape)
+	return NdIterWith{
+		ret: t
 		ptr_a: offset_ptr(t.buffer, t.shape, t.strides)
-		ptr_b: offset_ptr(other.buffer, other.shape, other.strides)
+		ptr_b: offset_ptr(b.buffer, b.shape, b.strides)
 		done: false
 		shape: t.shape
 		strides_a: t.strides
-		strides_b: other.strides
+		strides_b: b.strides
 		track: [0].repeat(t.ndims)
 		dim: t.ndims - 1
 	}
 }
 
+pub fn (t NdArray) scalar(other f64) ScalarIter {
+	ret := t.copy('C')
+	return ScalarIter{
+		ret: ret
+		scalar: other
+		ptr: offset_ptr(ret.buffer, ret.shape, ret.strides)
+		done: false
+		size: ret.size
+		shape: ret.shape
+		strides: ret.strides
+		track: [0].repeat(ret.ndims)
+		dim: ret.ndims - 1
+	}
+}
+
+// assigns an ndarray to an existing ndarray in place.
+// The input will be broadcast to the shape of the
+// existing ndarray if possible.
 pub fn (t NdArray) assign(val NdArray) {
-	for iter := t.iter_with(val); !iter.done; iter.next() {
+	for iter := t.with_inpl(val); !iter.done; iter.next() {
 		*iter.ptr_a = *iter.ptr_b
 	}
 }
 
+// assigns a scalar value to an existing ndarray in place.
+// The input is broadcast across the entire shape of the
+// existing ndarray
 pub fn (t NdArray) fill(val f64) {
 	for iter := t.iter(); !iter.done; iter.next() {
 		*iter.ptr = val
 	}
 }
 
+// str returns the string representation of an ndarray.
 pub fn (t NdArray) str() string {
 	return array2string(t, ', ', '')
 }
 
+// returns a copy of an array with a particular memory
+// layout, either c-contiguous or fortran contiguous
 pub fn (t NdArray) copy(order string) NdArray {
 	mut ret := allocate_ndarray(t.shape, order)
-	for iter := ret.iter_with(t); !iter.done; iter.next() {
+	for iter := ret.with_inpl(t); !iter.done; iter.next() {
 		*iter.ptr_a = *iter.ptr_b
 	}
 	ret.update_flags(all_flags())
 	return ret
 }
 
+// returns a view of an ndarray, identical to the
+// parent but not owning its own data.
 pub fn (t NdArray) view() NdArray {
 	mut newflags := dup_flags(t.flags)
 	newflags.owndata = false
@@ -241,6 +346,8 @@ pub fn (t NdArray) view() NdArray {
 	}
 }
 
+// diagonal returns a view of the diagonal entries
+// of a two dimensional ndarray
 pub fn (t NdArray) diagonal() NdArray {
 	nel := shape_min(t.shape)
 	newshape := [nel]
@@ -259,6 +366,9 @@ pub fn (t NdArray) diagonal() NdArray {
 	return ret
 }
 
+// reshape returns an ndarray with a new shape, as a
+// view if possible.  If a view is not possible, copies
+// data and returns a c-contiguous array
 pub fn (t NdArray) reshape(shape []int) NdArray {
 	mut ret := t.view()
 	mut newshape := shape.clone()
@@ -306,6 +416,8 @@ pub fn (t NdArray) reshape(shape []int) NdArray {
 	return ret
 }
 
+// transpose permutes the axes of an ndarray in a specified
+// order and returns a view of the data
 pub fn (t NdArray) transpose(order []int) NdArray {
 	mut ret := t.view()
 	n := order.len
@@ -340,11 +452,15 @@ pub fn (t NdArray) transpose(order []int) NdArray {
 	return ret
 }
 
+// t returns a ful transpose of an ndarray, with the axes
+// reversed
 pub fn (t NdArray) t() NdArray {
 	order := range(0, t.ndims)
 	return t.transpose(order.reverse())
 }
 
+// swapaxes returns a view of an ndarray with two axes
+// swapped.
 pub fn (t NdArray) swapaxes(a1 int, a2 int) NdArray {
 	mut order := range(0, t.ndims)
 	tmp := order[a1]
@@ -353,150 +469,33 @@ pub fn (t NdArray) swapaxes(a1 int, a2 int) NdArray {
 	return t.transpose(order)
 }
 
+// ravel returns a flattened view of an ndarray if possible,
+// otherwise a flattened copy
 pub fn (t NdArray) ravel() NdArray {
 	return t.reshape([-1])
 }
 
+// adds two ndarrays elementwise
 pub fn (lhs NdArray) +(rhs NdArray) NdArray {
-	a,b := broadcast_arrays(lhs, rhs)
-	ret := a.copy('C')
-	for iter := ret.iter_with(b); !iter.done; iter.next() {
-		*iter.ptr_a += *iter.ptr_b
-	}
-	return ret
+	return lhs.with(rhs).add()
 }
 
+// subtracts two ndarrays elementwise
 pub fn (lhs NdArray) -(rhs NdArray) NdArray {
-	a,b := broadcast_arrays(lhs, rhs)
-	ret := a.copy('C')
-	for iter := ret.iter_with(b); !iter.done; iter.next() {
-		*iter.ptr_a -= *iter.ptr_b
-	}
-	return ret
+	return lhs.with(rhs).subtract()
 }
 
+// multiplies two ndarrays elementwise
 pub fn (lhs NdArray) *(rhs NdArray) NdArray {
-	a,b := broadcast_arrays(lhs, rhs)
-	ret := a.copy('C')
-	for iter := ret.iter_with(b); !iter.done; iter.next() {
-		*iter.ptr_a *= *iter.ptr_b
-	}
-	return ret
+	return lhs.with(rhs).multiply()
 }
 
+// divides two ndarrays elementwise
 pub fn (lhs NdArray) /(rhs NdArray) NdArray {
-	a,b := broadcast_arrays(lhs, rhs)
-	ret := a.copy('C')
-	for iter := ret.iter_with(b); !iter.done; iter.next() {
-		*iter.ptr_a /= *iter.ptr_b
-	}
-	return ret
+	return lhs.with(rhs).divide()
 }
 
-pub fn (lhs NdArray) add(rhs NdArray) NdArray {
-	return lhs + rhs
-}
-
-pub fn (lhs NdArray) add_inpl(rhs NdArray) {
-	brhs := broadcast_to(rhs, lhs.shape)
-	for iter := lhs.iter_with(brhs); !iter.done; iter.next() {
-		*iter.ptr_a += *iter.ptr_b
-	}
-}
-
-pub fn (lhs NdArray) subtract(rhs NdArray) NdArray {
-	return lhs - rhs
-}
-
-pub fn (lhs NdArray) subtract_inpl(rhs NdArray) {
-	brhs := broadcast_to(rhs, lhs.shape)
-	for iter := lhs.iter_with(brhs); !iter.done; iter.next() {
-		*iter.ptr_a -= *iter.ptr_b
-	}
-}
-
-pub fn (lhs NdArray) multiply(rhs NdArray) NdArray {
-	return lhs * rhs
-}
-
-pub fn (lhs NdArray) multiply_inpl(rhs NdArray) {
-	brhs := broadcast_to(rhs, lhs.shape)
-	for iter := lhs.iter_with(brhs); !iter.done; iter.next() {
-		*iter.ptr_a *= *iter.ptr_b
-	}
-}
-
-pub fn (lhs NdArray) divide(rhs NdArray) NdArray {
-	return lhs / rhs
-}
-
-pub fn (lhs NdArray) divide_inpl(rhs NdArray) {
-	brhs := broadcast_to(rhs, lhs.shape)
-	for iter := lhs.iter_with(brhs); !iter.done; iter.next() {
-		*iter.ptr_a += *iter.ptr_b
-	}
-}
-
-pub fn (lhs NdArray) adds(rhs f64) NdArray {
-	return scalar_op(lhs, rhs, add_)
-}
-
-pub fn (lhs NdArray) subtracts(rhs f64) NdArray {
-	return scalar_op(lhs, rhs, subtract_)
-}
-
-pub fn (lhs NdArray) multiplys(rhs f64) NdArray {
-	return scalar_op(lhs, rhs, multiply_)
-}
-
-pub fn (lhs NdArray) divides(rhs f64) NdArray {
-	return scalar_op(lhs, rhs, divide_)
-}
-
-pub fn (lhs NdArray) sadd(rhs f64) NdArray {
-	return scalar_op_lhs(lhs, rhs, add_)
-}
-
-pub fn (lhs NdArray) ssubtract(rhs f64) NdArray {
-	return scalar_op_lhs(lhs, rhs, subtract_)
-}
-
-pub fn (lhs NdArray) smultiply(rhs f64) NdArray {
-	return scalar_op_lhs(lhs, rhs, multiply_)
-}
-
-pub fn (lhs NdArray) sdivide(rhs f64) NdArray {
-	return scalar_op_lhs(lhs, rhs, divide_)
-}
-
+// applies a provided operation to an ndarray, returning a copy
 pub fn (n NdArray) apply(op fn(f64)f64) NdArray {
 	return apply(n, op)
-}
-
-pub fn (n NdArray) sum_axis(axis int) NdArray {
-	return sum_axis(n, axis)
-}
-
-pub fn (n NdArray) mean_axis(axis int) NdArray {
-	return mean_axis(n, axis)
-}
-
-pub fn (n NdArray) min() f64 {
-	return min(n)
-}
-
-pub fn (n NdArray) max() f64 {
-	return max(n)
-}
-
-pub fn (n NdArray) sum() f64 {
-	return sum(n)
-}
-
-pub fn (n NdArray) prod() f64 {
-	return prod(n)
-}
-
-pub fn (n NdArray) mean() f64 {
-	return mean(n)
 }

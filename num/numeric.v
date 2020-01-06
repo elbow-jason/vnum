@@ -17,7 +17,7 @@ pub fn seq(n int) ndarray.NdArray {
 pub fn seq_between(start int, end int) ndarray.NdArray {
 	d := end - start
 	ret := seq(d)
-	return adds(ret, start)
+	return ret.scalar(start).add()
 }
 
 // Return evenly spaced numbers over a specified interval. //  // Returns num evenly spaced samples, calculated over the interval // [start, stop].
@@ -30,12 +30,12 @@ pub fn linspace(start f64, stop f64, num int) ndarray.NdArray {
 		if step == 0 {
 			panic('Cannot have a step of 0')
 		}
-		y = multiplys(y, step)
+		y = y.scalar(step).multiply()
 	}
 	else {
-		y = multiplys(y, delta)
+		y = y.scalar(delta).multiply()
 	}
-	y = adds(y, start)
+	y = y.scalar(start).add()
 	y.set([y.shape[0] - 1], stop)
 	return y
 }
@@ -65,7 +65,8 @@ pub fn geomspace(start f64, stop f64, num int) ndarray.NdArray {
 	}
 	log_start := math.log10(ustart)
 	log_stop := math.log10(ustop)
-	return multiplys(logspace(log_start, log_stop, num), out_sign)
+	ls := logspace(log_start, log_stop, num)
+	return ls.scalar(out_sign).multiply()
 }
 
 pub fn sign_scalar(value f64) f64 {

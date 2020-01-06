@@ -75,7 +75,9 @@ fn dup_flags(f ArrayFlags) ArrayFlags {
 	return ret
 }
 
-// update_flags updates the flags of an ndarray, taking into account // a provided flagmask.  Checks for the memory layout of the underlying // data and updates flags accordingly
+// update_flags updates the flags of an ndarray, taking into account 
+// a provided flagmask.  Checks for the memory layout of the underlying 
+// data and updates flags accordingly
 pub fn (n mut NdArray) update_flags(mask ArrayFlags) {
 	if (mask.fortran && n.flags.fortran) {
 		if internal.is_fortran_contiguous(n.shape, n.strides, n.ndims) {
