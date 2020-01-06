@@ -157,6 +157,9 @@ fn format_array(a NdArray, line_width int, next_line_prefix string, separator st
 
 // public method for printing arrays, if custom behavior is needed
 pub fn array2string(a NdArray, separator string, prefix string) string {
+	if a.shape.len == 0 {
+		return '[]'
+	}
 	mut summary_insert := ''
 	mut data := a
 	if a.size > 1000 {

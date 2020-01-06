@@ -6,12 +6,15 @@ import vnum.internal
 // ndarray.
 pub fn allocate_ndarray(shape []int, order string) NdArray {
 	size := internal.shape_size(shape)
-	strides := match (order) {
+	mut strides := match (order) {
 		'C'{
 			internal.cstrides(shape)
 		}
 		else {
 			internal.fstrides(shape)}
+	}
+	if shape.len == 0 {
+		strides = [1]
 	}
 	return NdArray{
 		shape: shape

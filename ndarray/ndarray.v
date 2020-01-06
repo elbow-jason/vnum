@@ -46,11 +46,17 @@ pub fn (t NdArray) set(idx []int, val f64) {
 pub fn (t NdArray) slice(idx ...[]int) NdArray {
 	mut newshape := t.shape.clone()
 	mut newstrides := t.strides.clone()
-	newflags := default_flags('C')
+	mut newflags := default_flags('C')
+	newflags.owndata = false
 	mut indexer := []int
 	for i, dex in idx {
 		mut fi := 0
 		mut li := 0
+		if dex.len == 0 {
+			newshape[i] == t.shape[i]
+			newstrides[i] == t.strides[i]
+			indexer << 0
+		}
 		if dex.len == 1 {
 			newshape[i] = 0
 			newstrides[i] = 0
@@ -122,7 +128,8 @@ pub fn (t NdArray) slice(idx ...[]int) NdArray {
 pub fn (t NdArray) slice_hilo(idx1 []int, idx2 []int) NdArray {
 	mut newshape := t.shape.clone()
 	mut newstrides := t.strides.clone()
-	newflags := default_flags('C')
+	mut newflags := default_flags('C')
+	newflags.owndata = false
 	mut ii := 0
 	idx_start := pad_with_zeros(idx1, t.ndims)
 	idx_end := pad_with_max(idx2, t.shape, t.ndims)
