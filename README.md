@@ -11,11 +11,11 @@ It provides:
 
 ## Installation
 
-Using [vpm](https://vpm.best/) (symlink must be created).
+Using [vpm](https://vpm.best/)
 
 ```sh
 $ v install christopherzimmerman.num
-$ ln -s path/to/.vmodules/christopherzimmerman/vnum vnum
+$ cp -a ~/.vmodules/christopherzimmerman/vnum/ ~/.vmodules/
 ```
 
 `vnum` requires LAPACK and OPENBLAS to be installed on linux, and the Accelerate framework on darwin.  Please review your OS's installation instructions to install these libraries.  If you wish you to use `vnum` without these, the `num` module will still function as normal.
