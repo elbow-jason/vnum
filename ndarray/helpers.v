@@ -1,6 +1,7 @@
 module ndarray
 
 import math
+import vnum.internal
 
 // offset finds the proper offset for an ndarray given
 // and indexer and the strides of the ndarray
@@ -128,4 +129,23 @@ fn divide_(a f64, b f64) f64 {
 // operations
 fn multiply_(a f64, b f64) f64 {
 	return a * b
+}
+
+// checks if two floating point ndarrays are close within a tolerance
+pub fn allclose(a NdArray, b NdArray) bool {
+	rtol := 1e-5
+	atol := 1e-8
+	if !internal.array_equal(a.shape, b.shape) {
+		panic("Shapes must be equal")
+	} else {
+		for iter := a.with_inpl(b); !iter.done; iter.next() {
+			i := *iter.ptr_a
+			j := *iter.ptr_b
+			
+			if math.abs(i - j) > (atol + rtol * math.abs(j)) {
+				return false
+			}
+		}
+	}
+	return true
 }
