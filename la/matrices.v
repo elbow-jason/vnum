@@ -2,7 +2,6 @@ module la
 
 import vnum.num
 import vnum.ndarray
-import math
 
 pub fn block_diag(arrs []ndarray.NdArray) ndarray.NdArray {
 	blocks := arrs.map(num.atleast_2d(it))

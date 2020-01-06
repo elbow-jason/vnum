@@ -33,7 +33,7 @@ $ cp -a ~/.vmodules/christopherzimmerman/vnum/ ~/.vmodules/
 
 ```sh
 >>> a := num.seq(12).reshape([3, 2, 2])
->>> num.sum_axis(a, 1)
+>>> num.axis(1).sum()
 [[ 2,  4],
  [10, 12],
  [18, 20]]
