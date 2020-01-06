@@ -174,7 +174,7 @@ fn wrap_det(a ndarray.NdArray) f64 {
 	if info > 0 {
 		panic('Singular matrix')
 	}
-	ldet := ret.diagonal().prod()
+	ldet := ret.diagonal().iter().prod()
 	mut detp := 1
 	for i := 0; i < n; i++ {
 		if (i + 1) != *(ipiv + i) {
