@@ -118,3 +118,10 @@ fn test_transpose() {
 	assert (nd.allclose(v1, v2))
 	assert (nd.allclose(v2, v3))
 }
+
+fn test_ravel() {
+	a := nd.from_int([1, 2, 3, 4], [2, 2])
+	v1 := a.ravel()
+	expected := nd.from_int([1, 2, 3, 4], [4])
+	assert (nd.allclose(v1, expected))
+}
