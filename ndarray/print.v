@@ -1,5 +1,7 @@
 module ndarray
 
+// concatenates two ndarrays together, this has to be here
+// and not in num since its needed for print.
 pub fn concatenate(ts []NdArray, axis int) NdArray {
 	mut newshape := ts[0].shape.clone()
 	newshape[axis] = 0
@@ -18,6 +20,8 @@ pub fn concatenate(ts []NdArray, axis int) NdArray {
 	return ret
 }
 
+// for arrays that are too large, calculate only the leading and trailing
+// items along each axis
 fn leading_trailing(a NdArray, edgeitems int, lo []int, hi []int) NdArray {
 	axis := lo.len
 	if axis == a.ndims {
@@ -45,6 +49,7 @@ fn leading_trailing(a NdArray, edgeitems int, lo []int, hi []int) NdArray {
 	}
 }
 
+// extends a line to contain new elements
 fn extend_line(s string, line string, word string, line_width int, next_line_prefix string) []string {
 	mut sn := s
 	mut ln := line
@@ -57,6 +62,7 @@ fn extend_line(s string, line string, word string, line_width int, next_line_pre
 	return [sn, ln]
 }
 
+// recursively print an ndarray
 fn recursor(a NdArray, index []int, hanging_indent string, curr_width int, summary_insert string, edge_items int, separator string, max_len int) string {
 	axis := index.len
 	axes_left := a.ndims - axis
@@ -145,10 +151,12 @@ fn recursor(a NdArray, index []int, hanging_indent string, curr_width int, summa
 	return '[' + s[hanging_indent.len..] + ']'
 }
 
+// format an array, array2string is just a wrapper around this
 fn format_array(a NdArray, line_width int, next_line_prefix string, separator string, edge_items int, summary_insert string, max_len int) string {
 	return recursor(a, [], next_line_prefix, line_width, summary_insert, edge_items, separator, max_len)
 }
 
+// public method for printing arrays, if custom behavior is needed
 pub fn array2string(a NdArray, separator string, prefix string) string {
 	mut summary_insert := ''
 	mut data := a
@@ -162,6 +170,7 @@ pub fn array2string(a NdArray, separator string, prefix string) string {
 	return format_array(a, 75, next_line_prefix, separator, 3, summary_insert, max_len)
 }
 
+// formats a floating point value to be "pretty"
 fn format_float(v f64, notation bool) string {
 	if notation {
 		return v.strsci(3)
@@ -173,6 +182,7 @@ fn format_float(v f64, notation bool) string {
 	}
 }
 
+// finds the max string length of an ndarray
 fn max_str_len(a NdArray) int {
 	mut mx := 0
 	for iter := a.iter(); !iter.done; iter.next() {
@@ -184,6 +194,8 @@ fn max_str_len(a NdArray) int {
 	return mx
 }
 
+// adjusts a string to be aligned with one side
+// of the output
 fn rjust(s string, n int) string {
 	diff := n - s.len
 	if diff > 0 {
