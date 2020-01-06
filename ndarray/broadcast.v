@@ -1,9 +1,9 @@
 module ndarray
 
 import vnum.internal
-// broadcastable takes two ndarrays as inputs, and finds the proper 
-// shape that they both broadcast to in order to find the proper output. 
-// This may require a change to the shapes of both tensors, so for assignment 
+// broadcastable takes two ndarrays as inputs, and finds the proper
+// shape that they both broadcast to in order to find the proper output.
+// This may require a change to the shapes of both tensors, so for assignment
 // and in-place modification, only the right hand side should be broadcasted.
 fn broadcastable(arr NdArray, other NdArray) []int {
 	sz := arr.shape.len
@@ -32,8 +32,8 @@ fn broadcastable(arr NdArray, other NdArray) []int {
 	panic('Shapes $arr.shape and $other.shape are not broadcastable')
 }
 
-// broadcast_equal checks two shapes, asserting that they can be broadcasted 
-// according to a couple basic rules: either they are equal or one is equal 
+// broadcast_equal checks two shapes, asserting that they can be broadcasted
+// according to a couple basic rules: either they are equal or one is equal
 // to 1
 fn broadcast_equal(a []int, b []int) bool {
 	mut bc := true
@@ -45,9 +45,9 @@ fn broadcast_equal(a []int, b []int) bool {
 	return bc
 }
 
-// broadcasts_strides broadcasts the strides of an existing array into a new shape that it is able 
-// to be broadcast into.  Since a copy is not made, the new strides will 
-// be heavily dependent on the current memory layout of the existing array 
+// broadcasts_strides broadcasts the strides of an existing array into a new shape that it is able
+// to be broadcast into.  Since a copy is not made, the new strides will
+// be heavily dependent on the current memory layout of the existing array
 // This will almost never result in a contiguous array
 fn broadcast_strides(dest_shape []int, src_shape []int, dest_strides []int, src_strides []int) []int {
 	dims := dest_shape.len
@@ -70,9 +70,9 @@ fn broadcast_strides(dest_shape []int, src_shape []int, dest_strides []int, src_
 	return ret
 }
 
-// Returns the final broadcastable shape between two arrays of shapes 
-// This takes the maximum at each index of the two shapes, and 
-// the smaller dimension is where the broadcast occurs in 
+// Returns the final broadcastable shape between two arrays of shapes
+// This takes the maximum at each index of the two shapes, and
+// the smaller dimension is where the broadcast occurs in
 // the derived arrays.
 fn broadcastable_shape(a []int, b []int) []int {
 	mut ret := []int
@@ -87,7 +87,7 @@ fn broadcastable_shape(a []int, b []int) []int {
 	return ret
 }
 
-// broadcast_to broadcasts an ndarray to a new shape, panicking if 
+// broadcast_to broadcasts an ndarray to a new shape, panicking if
 // the ndarray cannot be viewed as the new shape
 pub fn broadcast_to(t NdArray, newshape []int) NdArray {
 	defstrides := internal.cstrides(newshape)
@@ -103,10 +103,10 @@ pub fn broadcast_to(t NdArray, newshape []int) NdArray {
 	}
 }
 
-// as_strided as a highly unsafe method that views an array given 
-// an arbitrary shape and stride.  The result is not writeable, and 
-// many elements may share the same memory location.  Be very careful 
-// using this method, as using it incorrectly can lead to dangerous 
+// as_strided as a highly unsafe method that views an array given
+// an arbitrary shape and stride.  The result is not writeable, and
+// many elements may share the same memory location.  Be very careful
+// using this method, as using it incorrectly can lead to dangerous
 // memory access.
 pub fn as_strided(t NdArray, newshape []int, newstrides []int) NdArray {
 	return NdArray{
@@ -119,9 +119,9 @@ pub fn as_strided(t NdArray, newshape []int, newstrides []int) NdArray {
 	}
 }
 
-// broadcast_arrays takes two input arrays, and if possible, broadcasts 
-// them into compatible shapes, returning the two modified arrays. 
-// No copies of data are made, that must be handled later.  If the arrays 
+// broadcast_arrays takes two input arrays, and if possible, broadcasts
+// them into compatible shapes, returning the two modified arrays.
+// No copies of data are made, that must be handled later.  If the arrays
 // cannot be broadcast against each other, panic.
 pub fn broadcast_arrays(a NdArray, b NdArray) (NdArray,NdArray) {
 	if internal.array_equal(a.shape, b.shape) {

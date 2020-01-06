@@ -1,5 +1,4 @@
 module ndarray
-
 // The core iterator for an ndarray, iterates through a flattened
 // view of an array, always treating the memory layout as
 // c-contigious, so it doesn't matter what the memory layout
@@ -8,7 +7,7 @@ struct NdIter {
 pub mut:
 	ptr     &f64
 	done    bool
-	size 	int
+	size    int
 	shape   []int
 	strides []int
 	track   []int
@@ -54,10 +53,10 @@ pub fn (iter mut NdIter) next() bool {
 // of arrays passed is.
 struct ScalarIter {
 pub mut:
-	ret 	NdArray
+	ret     NdArray
 	ptr     &f64
 	done    bool
-	size 	int
+	size    int
 	shape   []int
 	strides []int
 	track   []int
@@ -103,7 +102,7 @@ pub fn (iter mut ScalarIter) next() bool {
 // pointers of each array.
 struct NdIterWith {
 pub mut:
-	ret 	  NdArray
+	ret       NdArray
 	ptr_a     &f64
 	ptr_b     &f64
 	done      bool
@@ -160,7 +159,7 @@ pub mut:
 	inc     int
 	tmp     NdArray
 	axis    int
-	size	int
+	size    int
 }
 
 // next increments the axes iter to store the next reduced

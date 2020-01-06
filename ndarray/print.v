@@ -1,5 +1,4 @@
 module ndarray
-
 // concatenates two ndarrays together, this has to be here
 // and not in num since its needed for print.
 pub fn concatenate(ts []NdArray, axis int) NdArray {

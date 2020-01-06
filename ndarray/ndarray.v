@@ -2,7 +2,6 @@ module ndarray
 
 import vnum.internal
 import math
-
 // The core array object.  Contains information about the memory
 // layout of data (flags), as well as the shape and strides describing
 // how to iterate over data.
@@ -16,7 +15,6 @@ pub mut:
 pub:
 	buffer  &f64
 }
-
 
 // get gets a scalar value from an ndarray at a given index
 pub fn (t NdArray) get(idx []int) f64 {
@@ -215,7 +213,7 @@ pub fn (t NdArray) axis(i int) AxesIter {
 // of an ndarray where the axis in question is not removed
 // from the resulting array, but instead reduced to 1.
 //
-// This makes broadcasting operations on the result more 
+// This makes broadcasting operations on the result more
 // consistent.
 pub fn (t NdArray) axis_with_dims(i int) AxesIter {
 	mut shape := t.shape.clone()
@@ -248,7 +246,7 @@ pub fn (t NdArray) axis_with_dims(i int) AxesIter {
 // Stores of a copy of an ndarray that the result of any modification
 // operation will be stored in.
 pub fn (t NdArray) with(other NdArray) NdIterWith {
-	a, b := broadcast_arrays(t, other)
+	a,b := broadcast_arrays(t, other)
 	ret := a.copy('C')
 	return NdIterWith{
 		ret: ret
@@ -265,7 +263,7 @@ pub fn (t NdArray) with(other NdArray) NdIterWith {
 
 // with returns an iterator through two arrays pairwise.
 // Broadcasts inputs to match shape, independent of strides,
-// Stores of a reference of an ndarray that the result of 
+// Stores of a reference of an ndarray that the result of
 // any modification operation will be stored in.
 pub fn (t NdArray) with_inpl(other NdArray) NdIterWith {
 	b := broadcast_to(other, t.shape)

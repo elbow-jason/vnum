@@ -2,7 +2,6 @@ module ndarray
 
 import math
 import vnum.internal
-
 // offset finds the proper offset for an ndarray given
 // and indexer and the strides of the ndarray
 fn offset(n NdArray, idx []int) int {
@@ -136,12 +135,12 @@ pub fn allclose(a NdArray, b NdArray) bool {
 	rtol := 1e-5
 	atol := 1e-8
 	if !internal.array_equal(a.shape, b.shape) {
-		panic("Shapes must be equal")
-	} else {
+		panic('Shapes must be equal')
+	}
+	else {
 		for iter := a.with_inpl(b); !iter.done; iter.next() {
 			i := *iter.ptr_a
 			j := *iter.ptr_b
-			
 			if math.abs(i - j) > (atol + rtol * math.abs(j)) {
 				return false
 			}
