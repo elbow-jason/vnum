@@ -96,7 +96,8 @@ pub fn tensordot(a ndarray.NdArray, b ndarray.NdArray, ax_a []int, ax_b []int) n
 		n2 *= as_[axis]
 	}
 	firstdim := notin.map(as_[it])
-	val := int(ndarray.from_int(firstdim, [firstdim.len]).prod())
+	tv := ndarray.from_int(firstdim, [firstdim.len]).iter()
+	val := int(tv.prod())
 	newshape_a := [val, n2]
 	tmpb := ndarray.range(0, ndb)
 	notinb := tmpb.filter(!(it in axes_b))
@@ -107,7 +108,8 @@ pub fn tensordot(a ndarray.NdArray, b ndarray.NdArray, ax_a []int, ax_b []int) n
 		n2 *= bs[axis]
 	}
 	firstdimb := notin.map(bs[it])
-	valb := int(ndarray.from_int(firstdimb, [firstdimb.len]).prod())
+	tvb := ndarray.from_int(firstdimb, [firstdimb.len]).iter()
+	valb := int(tvb.prod())
 	newshape_b := [n2, valb]
 	mut outshape := []int
 	outshape << firstdim

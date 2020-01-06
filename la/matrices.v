@@ -15,7 +15,7 @@ pub fn block_diag(arrs []ndarray.NdArray) ndarray.NdArray {
 		shapes << block.shape
 	}
 	shapet := ndarray.from_int(shapes, [blocks.len, 2])
-	mn := shapet.sum_axis(0)
+	mn := shapet.axis(0).sum()
 	mut r := 0
 	mut c := 0
 	ret := num.zeros([int(mn.get([0])), int(mn.get([1]))])
