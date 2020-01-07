@@ -55,6 +55,38 @@ Use the `vnum.linalg` module for powerful `BLAS` backed routines.
  [4928, 5306]]
 ```
 
+Or have some fun and make some basic plots! (VERY WIP)
+
+```v
+>>> import vnum.num
+>>> import vnum.ndarray
+>>> import vnum.plot
+>>> xs := num.seq(10)
+>>> y1 := ndarray.from_int_1d([3, 8, 4, 9, 1, 13, 2, 7, 8, 3])
+>>> mut chart := plot.ScatterChart{title: "Sample Chart", xlabel: "xs", ylabel: >>> chart.add_data_pair("Data A", xs, y1)
+>>> println(chart.plot_txt(80, 20))
+Sample Chart                              
+     14.0 +-------------------------------------------------------------------+ 
+          |                                                     .-----------. | 
+          |                                 *                   | *  Data A | | 
+     12.0 +                                                     '-----------' | 
+          |                                                                   | 
+     10.0 +                                                                   | 
+          |                   *                                               | 
+ y    8.0 +     *                                               *             | 
+ s        |                                              *                    | 
+          |                                                                   | 
+      6.0 +                                                                   | 
+          |                                                                   | 
+      4.0 +            *                                                      | 
+          *                                                            *      | 
+      2.0 +                                       *                           | 
+          |                          *                                        | 
+        0 +------------+-------------+------------+-------------+-------------+ 
+          0           2.0           4.0          6.0           8.0          10.0
+                                           xs
+```
+
 ## License
 
 [MIT](LICENSE)
