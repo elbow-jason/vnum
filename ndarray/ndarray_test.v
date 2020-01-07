@@ -125,3 +125,26 @@ fn test_ravel() {
 	expected := nd.from_int([1, 2, 3, 4], [4])
 	assert (nd.allclose(v1, expected))
 }
+
+fn test_elementwise() {
+	a := nd.from_int_1d([1, 2, 3])
+	adde := nd.from_int_1d([2, 4, 6])
+	subtracte := nd.from_int_1d([0, 0, 0])
+	divide := nd.from_int_1d([1, 1, 1])
+	multiply := nd.from_int_1d([1, 4, 9])
+	assert (nd.allclose(a + a, adde))
+	assert (nd.allclose(a - a, subtracte))
+	assert (nd.allclose(a / a, divide))
+	assert (nd.allclose(a * a, multiply))
+}
+
+fn add_one(a f64) f64 {
+	return a + 1
+}
+
+fn test_apply() {
+	a := nd.from_int_1d([1, 2, 3])
+	expected := nd.from_int_1d([2, 3, 4])
+	result := a.apply(add_one)
+	assert (nd.allclose(expected, result))
+}

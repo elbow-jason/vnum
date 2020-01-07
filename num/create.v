@@ -62,5 +62,5 @@ pub fn ones(shape []int) ndarray.NdArray {
 
 // Return an array of ones with the same shape and type as a given array.
 pub fn ones_like(t ndarray.NdArray) ndarray.NdArray {
-	return full(t.shape, 0.0)
+	return full(t.shape, 1.0)
 }

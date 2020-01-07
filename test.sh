@@ -2,7 +2,7 @@
 
 grep -rl 'import vnum.' **/*.v | xargs sed -i '' -E 's/(.*)import vnum\.(.*)/\1import \2/g'
 
-for module in consts fft internal la ndarray num
+for module in ndarray num
 do
     v test $module
 done
