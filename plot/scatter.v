@@ -214,7 +214,6 @@ pub fn (sc mut ScatterChart) plot_txt(tw, th int) string {
 	if sc.ylabel != '' {
 		tb.text(leftm - ylabsep, topm + height / 2, sc.ylabel, 3)
 	}
-	println(tb)
 	mut ntics := 0
 	if width < 20 {
 		ntics = 2
