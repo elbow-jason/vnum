@@ -169,41 +169,41 @@ fn draw_xtics(bg Plotter, rng Range, y, ym, tic_len int, options map[string]Styl
 // GenericXAxis draws the x-axis with range rng solely by graphic primitives of bg.
 // The x-axis is drawn at y on the screen and the mirrored x-axis is drawn at ym.
 fn generic_xaxis(bg Plotter, rng Range, y, ym int, options map[string]Style) {
-	// _,fontheight,_ := bg.font_metrics(element_style(options, MajorTicElement).font)
-	// mut tic_len := 0
-	// if !rng.tic_setting.hide {
-	// 	tic_len = int(math.min(12, math.max(4, fontheight / 2)))
-	// }
-	// xa := rng.data_2_screen(rng.min, rng.width, rng.offset, rng.min, rng.max, rng.norm)
-	// xe := rng.data_2_screen(rng.max, rng.width, rng.offset, rng.min, rng.max, rng.norm)
-	// // Axis label and range limits
-	// mut aly := y + 2 * tic_len
-	// if !rng.tic_setting.hide {
-	// 	aly += (3 * fontheight) / 2
-	// }
-	// if rng.show_limits {
-	// 	font := element_style(options, RangeLimitElement).font
-	// 	bg.text(xa, aly, rng.min.str(), 'tl', 0, font)
-	// 	bg.text(xe, aly, rng.max.str(), 'tr', 0, font)
-	// }
-	// if rng.label != '' {
-	// 	// draw label _after_ (=over) range limits
-	// 	font := element_style(options, MajorAxisElement).font
-	// 	bg.text((xa + xe) / 2, aly, '  ' + rng.label + '  ', 'tc', 0, font)
-	// }
-	// // Tics and Grid
-	// if !rng.tic_setting.hide {
-	// 	draw_xtics(bg, rng, y, ym, tic_len, options)
-	// }
-	// // Axis itself, mirrord axis and zero
-	// bg.line(xa, y, xe, y, element_style(options, MajorAxisElement))
-	// if rng.tic_setting.mirror >= 1 {
-	// 	bg.line(xa, ym, xe, ym, element_style(options, MinorAxisElement))
-	// }
-	// if rng.show_zero && rng.min < 0 && rng.max > 0 {
-	// 	z := rng.data_2_screen(0, rng.width, rng.offset, rng.min, rng.max, rng.norm)
-	// 	bg.line(z, y, z, ym, element_style(options, ZeroAxisElement))
-	// }
+	_,fontheight,_ := bg.font_metrics(element_style(options, MajorTicElement).font)
+	mut tic_len := 0
+	if !rng.tic_setting.hide {
+		tic_len = int(math.min(12, math.max(4, fontheight / 2)))
+	}
+	xa := rng.data_2_screen(rng.min, rng.width, rng.offset, rng.min, rng.max, rng.norm)
+	xe := rng.data_2_screen(rng.max, rng.width, rng.offset, rng.min, rng.max, rng.norm)
+	// Axis label and range limits
+	mut aly := y + 2 * tic_len
+	if !rng.tic_setting.hide {
+		aly += (3 * fontheight) / 2
+	}
+	if rng.show_limits {
+		font := element_style(options, RangeLimitElement).font
+		bg.text(xa, aly, rng.min.str(), 'tl', 0, font)
+		bg.text(xe, aly, rng.max.str(), 'tr', 0, font)
+	}
+	if rng.label != '' {
+		// draw label _after_ (=over) range limits
+		font := element_style(options, MajorAxisElement).font
+		bg.text((xa + xe) / 2, aly, '  ' + rng.label + '  ', 'tc', 0, font)
+	}
+	// Tics and Grid
+	if !rng.tic_setting.hide {
+		// draw_xtics(bg, rng, y, ym, tic_len, options)
+	}
+	// Axis itself, mirrord axis and zero
+	bg.line(xa, y, xe, y, element_style(options, MajorAxisElement))
+	if rng.tic_setting.mirror >= 1 {
+		bg.line(xa, ym, xe, ym, element_style(options, MinorAxisElement))
+	}
+	if rng.show_zero && rng.min < 0 && rng.max > 0 {
+		z := rng.data_2_screen(0, rng.width, rng.offset, rng.min, rng.max, rng.norm)
+		bg.line(z, y, z, ym, element_style(options, ZeroAxisElement))
+	}
 }
 
 fn draw_ytics(bg Plotter, rng Range, x, xm, tic_len int, options map[string]Style) {
@@ -273,32 +273,32 @@ fn draw_ytics(bg Plotter, rng Range, x, xm, tic_len int, options map[string]Styl
 // GenericYAxis draws the y-axis with the range rng solely by graphic primitives of bg.
 // The y.axis and the mirrord y-axis are drawn at x and ym respectively.
 fn generic_yaxis(bg Plotter, rng Range, x int, xm int, options map[string]Style) {
-	// font := element_style(options, MajorAxisElement).font
-	// _,fontheight,_ := bg.font_metrics(font)
-	// mut tic_len := 0
-	// if !rng.tic_setting.hide {
-	// 	tic_len = int(math.min(10, math.max(4, fontheight / 2)))
-	// }
-	// ya := rng.data_2_screen(rng.min, rng.width, rng.offset, rng.min, rng.max, rng.norm)
-	// ye := rng.data_2_screen(rng.max, rng.width, rng.offset, rng.min, rng.max, rng.norm)
-	// // Label and axis ranges
-	// alx := 2 * fontheight
-	// if rng.label != '' {
-	// 	y := (ya + ye) / 2
-	// 	bg.text(alx, y, rng.label, 'bc', 90, font)
-	// }
-	// if !rng.tic_setting.hide {
-	// 	draw_ytics(bg, rng, x, xm, tic_len, options)
-	// }
-	// // Axis itself, mirrord axis and zero
-	// bg.line(x, ya, x, ye, element_style(options, MajorAxisElement))
-	// if rng.tic_setting.mirror >= 1 {
-	// 	bg.line(xm, ya, xm, ye, element_style(options, MinorAxisElement))
-	// }
-	// if rng.show_zero && rng.min < 0 && rng.max > 0 {
-	// 	z := rng.data_2_screen(0, rng.width, rng.offset, rng.min, rng.max, rng.norm)
-	// 	bg.line(x, z, xm, z, element_style(options, ZeroAxisElement))
-	// }
+	font := element_style(options, MajorAxisElement).font
+	_,fontheight,_ := bg.font_metrics(font)
+	mut tic_len := 0
+	if !rng.tic_setting.hide {
+		tic_len = int(math.min(10, math.max(4, fontheight / 2)))
+	}
+	ya := rng.data_2_screen(rng.min, rng.width, rng.offset, rng.min, rng.max, rng.norm)
+	ye := rng.data_2_screen(rng.max, rng.width, rng.offset, rng.min, rng.max, rng.norm)
+	// Label and axis ranges
+	alx := 2 * fontheight
+	if rng.label != '' {
+		y := (ya + ye) / 2
+		bg.text(alx, y, rng.label, 'bc', 90, font)
+	}
+	if !rng.tic_setting.hide {
+		// draw_ytics(bg, rng, x, xm, tic_len, options)
+	}
+	// Axis itself, mirrord axis and zero
+	bg.line(x, ya, x, ye, element_style(options, MajorAxisElement))
+	if rng.tic_setting.mirror >= 1 {
+		bg.line(xm, ya, xm, ye, element_style(options, MinorAxisElement))
+	}
+	if rng.show_zero && rng.min < 0 && rng.max > 0 {
+		z := rng.data_2_screen(0, rng.width, rng.offset, rng.min, rng.max, rng.norm)
+		bg.line(x, z, xm, z, element_style(options, ZeroAxisElement))
+	}
 }
 // GenericScatter draws the given points according to style.
 // style.fill_color is used as color of error bars and style.fontSize is used
