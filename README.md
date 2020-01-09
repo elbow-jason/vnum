@@ -63,7 +63,8 @@ Or have some fun and make some basic plots! (VERY WIP)
 >>> import vnum.plot
 >>> xs := num.seq(10)
 >>> y1 := ndarray.from_int_1d([3, 8, 4, 9, 1, 13, 2, 7, 8, 3])
->>> mut chart := plot.ScatterChart{title: "Sample Chart", xlabel: "xs", ylabel: >>> chart.add_data_pair("Data A", xs, y1)
+>>> mut chart := plot.ScatterChart{title: "Sample Chart", xlabel: "xs", ylabel: "ys"}
+>>> chart.add_data_pair("Data A", xs, y1)
 >>> println(chart.plot_txt(80, 20))
 Sample Chart                              
      14.0 +-------------------------------------------------------------------+ 
