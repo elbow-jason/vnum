@@ -58,35 +58,16 @@ Use the `vnum.linalg` module for powerful `BLAS` backed routines.
 Or have some fun and make some basic plots! (VERY WIP)
 
 ```v
->>> import vnum.num
->>> import vnum.ndarray
->>> import vnum.plot
->>> xs := num.seq(10)
->>> y1 := ndarray.from_int_1d([3, 8, 4, 9, 1, 13, 2, 7, 8, 3])
->>> mut chart := plot.ScatterChart{title: "Sample Chart", xlabel: "xs", ylabel: "ys"}
->>> chart.add_data_pair("Data A", xs, y1)
->>> println(chart.plot_txt(80, 20))
-Sample Chart                              
-     14.0 +-------------------------------------------------------------------+ 
-          |                                                     .-----------. | 
-          |                                 *                   | *  Data A | | 
-     12.0 +                                                     '-----------' | 
-          |                                                                   | 
-     10.0 +                                                                   | 
-          |                   *                                               | 
- y    8.0 +     *                                               *             | 
- s        |                                              *                    | 
-          |                                                                   | 
-      6.0 +                                                                   | 
-          |                                                                   | 
-      4.0 +            *                                                      | 
-          *                                                            *      | 
-      2.0 +                                       *                           | 
-          |                          *                                        | 
-        0 +------------+-------------+------------+-------------+-------------+ 
-          0           2.0           4.0          6.0           8.0          10.0
-                                           xs
+xs := num.linspace(-2.0 * math.pi, 2.0 * math.pi, 100)
+ys := num.tan(xs)
+mut chart := plot.line("Tan(X)")
+chart.add_data("tan(X)", xs, ys)
+mut svg := plot.new_svg(480, 320)
+chart.draw(mut svg)
+svg.save_svg('test.svg')
 ```
+
+![basic plot](https://raw.githubusercontent.com/vlang-num/vnum/master/static/plot.png)
 
 ## License
 

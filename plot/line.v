@@ -92,6 +92,16 @@ pub fn (s LineChart) data_width(g SvgGraphic) int {
 	return g.w - 2 * s.options.data_padding
 }
 
+pub fn (s mut LineChart) set_xrange(min f64, max f64) {
+	s.x_axis.range.min = min
+	s.x_axis.range.max = max
+}
+
+pub fn (s mut LineChart) set_yrange(min f64, max f64) {
+	s.y_axis.range.min = min
+	s.y_axis.range.max = max
+}
+
 pub fn (lc mut LineChart) add_data(name string, xs ndarray.NdArray, ys ndarray.NdArray) {
 	ld := LineData{
 		name: name
