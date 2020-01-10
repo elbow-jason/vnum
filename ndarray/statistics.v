@@ -116,3 +116,19 @@ pub fn (iterator AxesIter) maximum() NdArray {
 	}
 	return ret
 }
+
+pub fn (iterator NdIter) cumsum() NdArray {
+	ret := allocate_ndarray([iterator.size], 'C')
+	mut track := f64(0.0)
+	mut iter := ret.iter()
+	mut inp_iter := iterator
+	mut ii := 0
+	for ii < ret.size {
+		*iter.ptr = *inp_iter.ptr + track
+		track = *iter.ptr
+		iter.next()
+		inp_iter.next()
+		ii++
+	}
+	return ret
+}

@@ -2,3 +2,5 @@
 test.v
 test
 fns.txt
+_build
+_static
