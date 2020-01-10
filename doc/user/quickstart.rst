@@ -204,30 +204,22 @@ Crystal arrays.
 **N-Dimensional** NdArrays can have a single index operation per axis. These indices are provided
 as *args.
 
-.. code-block:: crystal
+.. code-block:: v
 
-    a = ndarray.new(5, 4) do |i, j|
-      10 * i + j
-    end
-    puts a
-
-    puts a[[2, 3]]
-    puts a[...5, 1]
-    puts a[..., 1]
-    puts a[1...3, ...]
-
-.. code-block:: crystal
-
-    ndarray([[ 0,  1,  2,  3],
-            [10, 11, 12, 13],
-            [20, 21, 22, 23],
-            [30, 31, 32, 33],
-            [40, 41, 42, 43]])
-    23
-    ndarray([ 1, 11, 21, 31, 41])
-    ndarray([ 1, 11, 21, 31, 41])
-    ndarray([[10, 11, 12, 13],
-            [20, 21, 22, 23]])
+    >>> a := num.seq(20).reshape([5, 4])
+    >>> a
+    [[ 0,  1,  2,  3],
+     [ 4,  5,  6,  7],
+     [ 8,  9, 10, 11],
+     [12, 13, 14, 15],
+     [16, 17, 18, 19]]
+    >>> println(a.slice([0, 5], [1]))
+    [ 1,  5,  9, 13, 17]
+    >>> println(a.slice([]int, [1]))
+    [ 1,  5,  9, 13, 17]
+    >>> println(a.slice([1, 3], []))
+    [[ 4,  5,  6,  7],
+     [ 8,  9, 10, 11]]
 
 
 Shape Manipulation
@@ -238,63 +230,55 @@ Changing the shape of an ndarray
 
 NdArrays have shapes defined by the number of elements along each axis.
 
-.. code-block:: crystal
+.. code-block:: v
 
-    a = ndarray.random(0...10, [3, 4])
-    puts a
-    puts a.shape
-
-.. code-block:: crystal
-
-    ndarray([[8, 4, 8, 5],
-            [7, 5, 9, 5],
-            [3, 7, 5, 5]])
+    >>> ar := num.random(0, 10, [3, 4])
+    >>> println(ar.shape)
     [3, 4]
+    >>> ar
+    [[ 8.18468,  5.32759, 0.248512,  3.87761],
+     [ 9.54492,  3.74844,  1.30248, 0.362413],
+     [ 3.97763,  8.35798,  5.88077,  2.13291]]
 
 The shape of a andarray can be changed with many routines.  Many methods return
 a view of the original data, but do not change the origin ndarray.
 
-.. code-block:: crystal
+.. code-block:: v
 
-    puts a.ravel
-    puts a.reshape([6, 2])
-    puts a.transpose
-    puts a.transpose.shape
-    puts a.shape
-
-.. code-block:: crystal
-
-    ndarray([8, 4, 8, 5, 7, 5, 9, 5, 3, 7, 5, 5])
-    ndarray([[8, 4],
-            [8, 5],
-            [7, 5],
-            [9, 5],
-            [3, 7],
-            [5, 5]])
-    ndarray([[8, 7, 3],
-            [4, 5, 7],
-            [8, 9, 5],
-            [5, 5, 5]])
+    >>> ar.ravel()
+    [  2.6021,  6.77886,  3.06252,   4.3558,  7.18489, 0.915223,  4.58138,
+    1.37091,  5.56711,  2.68335,  6.80612,  9.01151]
+    >>> ar.reshape([6, 2])
+    >>> println(ar.reshape([6, 2]))
+    [[ 2.77477,  4.60744],
+     [0.442733,  9.17142],
+     [ 7.94581,  6.84151],
+     [ 5.12616,  2.66994],
+     [ 3.34875,  9.54148],
+     [ 8.12602,  1.69212]]
+    >>> println(ar.t())
+    [[ 8.66651,  1.39074,  8.94975],
+     [0.948504,  3.96881,  3.09888],
+     [ 5.74682,  1.30439,  9.13915],
+     [ 1.24638,  2.22516,  7.94207]]
+    >>> println(ar.t().shape)
     [4, 3]
-    [3, 4]
+
 
 If a dimension is provided as -1 in an operation that reshapes the ndarray, the other dimensions
 are calculated automatically.  Only a single dimension can be dynamically calculated.
 
-.. code-block:: crystal
+.. code-block:: v
 
-    puts a.reshape(3, 2, -1)
+    >>> println(ar.reshape([3, 2, -1]))
+    [[[  0.5637,  4.27407],
+      [0.267578,  2.17197]],
 
-.. code-block:: crystal
+    [[ 9.41788,  1.58302],
+     [ 5.69251,   9.5946]],
 
-    ndarray([[[8, 4],
-             [8, 5]],
-
-            [[7, 5],
-             [9, 5]],
-
-            [[3, 7],
-             [5, 5]]])
+    [[ 1.16419,   2.7269],
+     [  8.0944, 0.194529]]]
 
 
 Stacking together different NdArrays
@@ -303,32 +287,27 @@ Stacking together different NdArrays
 Many NdArrays can be stacked together along an axis.  Shapes must be the same on
 the off-axis dimensions of the NdArrays.
 
-.. code-block:: crystal
+.. code-block:: v
 
-    a = ndarray.random(0...10, [2, 2])
-    b = ndarray.random(0...10, [2, 2])
-
-    puts a
-    puts b
-
-    puts B.vstack([a, b])
-    puts B.hstack([a, b])
-    puts B.column_stack([a, b])
-
-.. code-block:: crystal
-
-    ndarray([[7, 7],
-            [1, 3]])
-    ndarray([[3, 9],
-            [7, 0]])
-    ndarray([[7, 7],
-            [1, 3],
-            [3, 9],
-            [7, 0]])
-    ndarray([[7, 7, 3, 9],
-            [1, 3, 7, 0]])
-    ndarray([[7, 7, 3, 9],
-            [1, 3, 7, 0]])
+    >>> a1 := num.random(0, 10, [2, 2])
+    >>> b1 := num.random(0, 10, [2, 2])
+    >>> a1
+    [[8.13498, 1.10927],
+     [5.02861,  1.8071]]
+    >>> b1
+    [[2.04858, 9.54664],
+     [3.53256,  6.2523]]
+    >>> println(num.vstack([a1, b1]))
+    [[5.34553, 2.90882],
+     [ 8.0248, 2.42008],
+     [8.13823, 2.16565],
+     [1.94479, 8.34849]]
+    >>> println(num.hstack([a1, b1]))
+    [[6.55104, 7.66096, 9.59723, 6.02242],
+     [7.32896, 3.88884, 9.45543,  3.0551]]
+    >>> println(num.column_stack([a1, b1]))
+    [[ 2.71795,  2.35145, 0.977813,   9.9081],
+     [ 6.66114,  5.31986,  6.93087,  2.66366]]
 
 Copies and Views
 ================
