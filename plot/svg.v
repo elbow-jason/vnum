@@ -52,11 +52,19 @@ pub fn (s mut SvgGraphic) circle(x, y, r int, stroke string, fill string) {
 
 pub fn (s mut SvgGraphic) line(x1, y1, x2, y2 int, style Style) {
 	r, g, b, _ := style.symbol_color.rgba()
-	s.svg += '<line x1="$x1" y1="$y1" x2="$x2" y2="$y2" style="stroke:rgb($r,$g,$b);stroke-width:2" />\n'
+	s.svg += '<line x1="$x1" y1="$y1" x2="$x2" y2="$y2" style="stroke:rgb($r,$g,$b);stroke-width:3" />\n'
+}
+
+fn (s mut SvgGraphic) tic(x1, y1, x2, y2 int, options TicSettings) {
+	s.svg += '<line x1="$x1" y1="$y1" x2="$x2" y2="$y2"'
+	r, g, b, _ := options.color.rgba()
+	s.svg += ' stroke="rgb($r, $g, $b)" '
+	s.svg += ' stroke-width="$options.width"'
+	s.svg += "/>\n"
 }
 
 pub fn (s mut SvgGraphic) text(x, y int, txt string, align int, rot int) {
-	s.svg += '<text x="$x" y="$y" class="small" style="text-anchor:middle;" font-family="Tahoma, sans-serif">$txt</text>\n'
+	s.svg += '<text x="$x" y="$y" font-size="small" align-baseline="bottom" style="text-anchor:middle;" font-family="Tahoma, sans-serif">$txt</text>\n'
 }
 
 pub fn (s mut SvgGraphic) symbol(x, y int, style Style) {
@@ -90,9 +98,9 @@ pub fn (s mut SvgGraphic) symbol(x, y int, style Style) {
 		}
 		'.' {
 			if b >=4 {
-				b /= 2
+				b /= 4
 			}
-			s.circle(x, y, b, style.symbol_color.rgbas(), 'none')
+			s.circle(x, y, 2, style.symbol_color.rgbas(), style.symbol_color.rgbas())
 		}
 		'@' {
 			s.circle(x, y, a, style.symbol_color.rgbas(), style.symbol_color.rgbas())

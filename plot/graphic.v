@@ -1,28 +1,14 @@
 module plot
 
-struct Color {
-	r byte
-	g byte
-	b byte
-	a f64
-}
-
 struct Range {
-	min	f64
-	max f64
+mut:
+	min	f64 = f64(0.0)
+	max f64 = f64(0.0)
 }
 
-pub fn (r Range) bound(f f64) f64 {
-	return (f - r.min) / (r.max-r.min)
-}
-
-pub fn (c Color) rgba() (byte, byte, byte, f64) {
-	return c.r, c.g, c.b, c.a
-}
-
-pub fn (c Color) rgbas() string {
-	r, g, b, a := c.rgba()
-	return 'rgba($r, $g, $b, $a)'
+pub fn (r Range) bound(f f64, x, y int) f64 {
+	a := (f - r.min) / (r.max-r.min)
+	return a * (y - x) + x
 }
 
 struct Style {
@@ -31,6 +17,11 @@ pub mut:
 	symbol_color Color
 	symbol_size f64
 	fill_color Color
+}
+
+struct ChartOptions {
+	border_padding	int = 30
+	data_padding	int = 40
 }
 
 interface Renderer {
@@ -59,10 +50,5 @@ pub const(
 		'V', // empty triangle down
 		'Z', // filled diamond
 		'.', // tiny dot
-	]
-	Colors = [
-		Color{31, 119, 180, 1},
-		Color{255, 127, 14, 1},
-		Color{148, 103, 189, 1}
 	]
 )

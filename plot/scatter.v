@@ -2,11 +2,6 @@ module plot
 
 import vnum.ndarray
 
-struct Point {
-	x	f64
-	y	f64
-}
-
 struct ScatterData {
 pub mut:
 	name	string
@@ -15,10 +10,23 @@ pub mut:
 	ys		ndarray.NdArray
 }
 
-pub struct ScatterChart {
+struct ScatterChart {
 pub mut:
 	title 	string
 	data	[]ScatterData
+	x_axis 	AxisOptions
+	y_axis	AxisOptions
+	options	ChartOptions
+}
+
+pub fn scatter(title string) ScatterChart {
+	mut chart := ScatterChart{
+		title: title
+	}
+	chart.x_axis = new_axis()
+	chart.y_axis = new_axis()
+	chart.options = ChartOptions{border_padding: 30, data_padding: 40}
+	return chart
 }
 
 pub fn (s mut ScatterChart) add_data(name string, xs ndarray.NdArray, ys ndarray.NdArray) {
@@ -30,7 +38,17 @@ pub fn (s mut ScatterChart) add_data(name string, xs ndarray.NdArray, ys ndarray
 	s.data << data
 }
 
-pub fn (s ScatterChart) xbounds() Range {
+pub fn (s mut ScatterChart) set_xrange(min f64, max f64) {
+	s.x_axis.range.min = min
+	s.x_axis.range.max = max
+}
+
+pub fn (s mut ScatterChart) set_yrange(min f64, max f64) {
+	s.y_axis.range.min = min
+	s.y_axis.range.max = max
+}
+
+fn (s ScatterChart) xbounds() Range {
 	mut mn := f64(0.0)
 	mut mx := f64(0.0)
 	for i, e in s.data {
@@ -54,7 +72,7 @@ pub fn (s ScatterChart) xbounds() Range {
 	}
 }
 
-pub fn (s ScatterChart) ybounds() Range {
+fn (s ScatterChart) ybounds() Range {
 	mut mn := f64(0.0)
 	mut mx := f64(0.0)
 	for i, e in s.data {
@@ -78,64 +96,71 @@ pub fn (s ScatterChart) ybounds() Range {
 	}
 }
 
+fn (s ScatterChart) height(g SvgGraphic) int {
+	return g.h - 2 * s.options.border_padding
+}
+
+fn (s ScatterChart) width(g SvgGraphic) int {
+	return g.w - 2 * s.options.border_padding
+}
+
+fn (s ScatterChart) data_height(g SvgGraphic) int {
+	return g.h - 2 * s.options.data_padding
+}
+
+pub fn (s ScatterChart) data_width(g SvgGraphic) int {
+	return g.w - 2 * s.options.data_padding
+}
+
 pub fn (s mut ScatterChart) draw(g mut SvgGraphic) {
-	xrange := s.xbounds()
-	yrange := s.ybounds()
+	if s.x_axis.unbounded() {
+		s.x_axis.range = s.xbounds()
+	}
+	if s.y_axis.unbounded() {
+		s.y_axis.range = s.ybounds()
+	}
 
-	border_padding := 30
-	data_padding := border_padding + 10
-
-	height := g.h - 2 * border_padding
-	width := g.w - 2 * border_padding
-
-	hd := g.h - 2 * data_padding
-	wd := g.w - 2 * data_padding
-
-	g.bounding_box(border_padding, border_padding, width, height)
+	g.bounding_box(s.options.border_padding, s.options.border_padding, s.width(g), s.height(g))
 
 	for i, entry in s.data {
 		if entry.style.symbol.len == 0 {
-			s.data[i].style.symbol = Symbol[i%Symbol.len]
+			s.data[i].style.symbol = '.'
 		}
 		s.data[i].style.symbol_color = Colors[i%Colors.len]
 		for iter := entry.xs.with(entry.ys); !iter.done; iter.next() {
-			x := xrange.bound(*iter.ptr_a) * wd + data_padding
-			y := yrange.bound(*iter.ptr_b) * hd + data_padding
+			x := s.x_axis.range.bound(*iter.ptr_a, s.options.data_padding, g.w - s.options.data_padding)
+			y := s.y_axis.range.bound(*iter.ptr_b, s.options.data_padding, g.h - s.options.data_padding)
 			g.symbol(int(x), int(y), s.data[i].style)
 		}
 	}
 
-	mut num_tics := 5
-	mut tic_pad := wd / (num_tics - 1)
-	mut first_tic := xrange.min
-	mut tic_inc := (xrange.max - xrange.min) / (num_tics - 1)
+	mut ntics, mut pad, mut ctic, mut inc := s.x_axis.info(s.data_width(g))
 
-	mut sx := data_padding
-	mut sy := border_padding + height
-
-	tic_style := Style{
-		symbol_color: Color{0, 0, 0, 1}
-	}
+	mut sx := s.options.data_padding
+	mut sy := s.options.border_padding + s.height(g)
 	
-	for i := 0; i < num_tics; i++ {
-		g.line(sx, sy, sx, sy -5, tic_style)
-		sx += tic_pad
-		first_tic += tic_inc
+	if !s.x_axis.hide {
+		for i := 0; i < ntics; i++ {
+			g.tic(sx, sy, sx, sy - s.x_axis.tic_settings.length, s.x_axis.tic_settings)
+			g.text(sx, sy+15, int(ctic).str(), 0, 0)
+			sx += int(pad)
+			ctic += inc
+		}
 	}
 
-	num_tics = 5
-	tic_pad = hd / (num_tics-1)
-	first_tic = yrange.min
-	tic_inc = (yrange.max - yrange.min) / (num_tics-1)
+	ntics, pad, ctic, inc = s.y_axis.info(s.data_height(g))
 
-	sx = border_padding
-	sy = data_padding + hd
+	sx = s.options.border_padding
+	sy = s.options.data_padding + s.data_height(g)
 
-	for i := 0; i < num_tics; i++ {
-		g.line(sx, sy, sx + 5, sy, tic_style)
-		sy -= tic_pad
+	if !s.y_axis.hide {
+		for i := 0; i < ntics; i++ {
+			g.tic(sx, sy, sx + s.x_axis.tic_settings.length, sy, s.y_axis.tic_settings)
+			g.text(sx-15, sy+5, int(ctic).str(), 0, 0)
+			sy -= int(pad)
+			ctic += inc
+		}
 	}
 
-	g.text(g.w/2, border_padding - 10, "Sample Scatter Chart", 0, 0)
-
+	g.text(g.w/2, s.options.border_padding - 10, s.title, 0, 0)
 }

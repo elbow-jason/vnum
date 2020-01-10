@@ -1,0 +1,5 @@
+module plot
+
+struct BarData {
+	
+}
