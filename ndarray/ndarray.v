@@ -82,6 +82,7 @@ pub fn (t NdArray) slice(idx ...[]int) NdArray {
 			}
 			else {
 				newshape[i] = li - fi
+				indexer << fi
 			}
 		}
 		else if dex.len == 3 {
