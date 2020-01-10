@@ -1,6 +1,6 @@
 ![vnum logo](https://raw.githubusercontent.com/vlang-num/vnum/master/static/logo.png)
 
-`vnum` is the core shard needed for scientific computing with V.
+`vnum` is the core shard needed for scientific computing with V.  It is looking for core developer team members to continue working on the library.  If you are interested, contact Chris.
 
 It provides:
 
