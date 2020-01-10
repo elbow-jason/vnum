@@ -4,7 +4,7 @@
 
 It provides:
 
-- An n-dimensional `Tensor` data structure
+- An n-dimensional `NdArray` data structure
 - sophisticated reduction, elementwise, and accumulation operations
 - data structures that can easily be passed to C libraries
 - powerful linear algebra routines backed by LAPACK and BLAS.
@@ -29,7 +29,7 @@ $ cp -a ~/.vmodules/christopherzimmerman/vnum/ ~/.vmodules/
  18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
 ```
 
-`vnum` provides vectorized operations on tensors.
+`vnum` provides vectorized operations on ndarrays.
 
 ```sh
 >>> a := num.seq(12).reshape([3, 2, 2])
