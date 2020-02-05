@@ -1,3 +1,5 @@
+> vnum development has been suspended until 0.2.  There are too many missing features regarding generics and interfaces that further work just doesn't make any sense for now, and would need to be re-written later anyways.  If you would like to become a member of the core team once 0.2 hits, contact me.
+
 ![vnum logo](https://raw.githubusercontent.com/vlang-num/vnum/master/static/logo.png)
 
 `vnum` is the core shard needed for scientific computing with V.  It is looking for core developer team members to continue working on the library.  If you are interested, contact Chris.
