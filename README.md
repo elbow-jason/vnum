@@ -17,7 +17,7 @@ Using [vpm](https://vpm.best/)
 
 ```sh
 $ v install christopherzimmerman.num
-$ cp -a ~/.vmodules/christopherzimmerman/vnum/ ~/.vmodules/
+$ ln -sf ~/.vmodules/christopherzimmerman/vnum/ ~/.vmodules/vnum
 ```
 
 `vnum` requires LAPACK and OPENBLAS to be installed on linux, and the Accelerate framework on darwin.  Please review your OS's installation instructions to install these libraries.  If you wish you to use `vnum` without these, the `num` module will still function as normal.
@@ -35,7 +35,7 @@ $ cp -a ~/.vmodules/christopherzimmerman/vnum/ ~/.vmodules/
 
 ```sh
 >>> a := num.seq(12).reshape([3, 2, 2])
->>> num.axis(1).sum()
+>>> num.sum_axis(a, 1)
 [[ 2,  4],
  [10, 12],
  [18, 20]]
@@ -56,20 +56,6 @@ Use the `vnum.linalg` module for powerful `BLAS` backed routines.
  [4796, 5162],
  [4928, 5306]]
 ```
-
-Or have some fun and make some basic plots! (VERY WIP)
-
-```v
-xs := num.linspace(-2.0 * math.pi, 2.0 * math.pi, 100)
-ys := num.tan(xs)
-mut chart := plot.line("Tan(X)")
-chart.add_data("tan(X)", xs, ys)
-mut svg := plot.new_svg(480, 320)
-chart.draw(mut svg)
-svg.save_svg('test.svg')
-```
-
-![basic plot](https://raw.githubusercontent.com/vlang-num/vnum/master/static/plot.png)
 
 ## License
 
