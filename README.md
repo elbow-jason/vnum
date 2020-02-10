@@ -60,166 +60,166 @@ Use the `vnum.linalg` module for powerful `BLAS` backed routines.
 ## For Numpy Users
 
 <table>
-    <tr>
-        <th>NumPy </th>
-        <th>Vnum</th>
-    </tr>
+<tr>
+    <th>NumPy </th>
+    <th>Vnum</th>
+</tr>
 
-    <tr>
-        <td>
-            <code>
+<tr>
+<td>
+<code>
 np.array([[1.,2.,3.], [4.,5.,6.]])
  </code>
-        </td>
-        <td>
-            <code>
+</td>
+<td>
+<code>
 num.from_int([1, 2, 3, 4, 5, 6], [2, 3])
  </code>
-        </td>
-    </tr>
+</td>
+</tr>
 
-    <tr>
-        <td>
-            <code>
+<tr>
+<td>
+<code>
 np.arange(10)
  </code>
-        </td>
-        <td>
-            <code>
+</td>
+<td>
+<code>
 num.seq(10)
  </code>
-        </td>
-    </tr>
+</td>
+</tr>
 
-    <tr>
-        <td>
-            <code>
+<tr>
+<td>
+<code>
 np.linspace(0, 10, 11)
  </code>
-        </td>
-        <td>
-            <code>
+</td>
+<td>
+<code>
 num.linspace(0, 10, 11)
  </code>
-        </td>
-    </tr>
+</td>
+</tr>
 
-    <tr>
-        <td>
-            <code>
+<tr>
+<td>
+<code>
 np.ones((3, 4, 5))
  </code>
-        </td>
-        <td>
-            <code>
+</td>
+<td>
+<code>
 num.ones([3, 4, 5])
  </code>
-        </td>
-    </tr>
+</td>
+</tr>
 
-    <tr>
-        <td>
-            <code>
+<tr>
+<td>
+<code>
 np.zeros((3, 4, 5))
  </code>
-        </td>
-        <td>
-            <code>
+</td>
+<td>
+<code>
 num.zeros((3, 4, 5))
  </code>
-        </td>
-    </tr>
+</td>
+</tr>
 
-    <tr>
-        <td>
-            <code>
+<tr>
+<td>
+<code>
 np.zeros((3, 4, 5), order='F')
  </code>
-        </td>
-        <td>
-            <code>
+</td>
+<td>
+<code>
 num.zeros([3, 4, 5]).copy('F')
  </code>
-        </td>
-    </tr>
+</td>
+</tr>
 
-    <tr>
-        <td>
-            <code>
+<tr>
+<td>
+<code>
 np.full((3, 4), 7)
  </code>
-        </td>
-        <td>
-            <code>
+</td>
+<td>
+<code>
 num.full([3, 4], 7)
  </code>
-        </td>
-    </tr>
+</td>
+</tr>
 
-    <tr>
-        <td>
-            <code>
+<tr>
+<td>
+<code>
 a[-1]
  </code>
-        </td>
-        <td>
-            <code>
+</td>
+<td>
+<code>
 a.get([-1])
  </code>
-        </td>
-    </tr>
+</td>
+</tr>
 
-    <tr>
-        <td>
-            <code>
+<tr>
+<td>
+<code>
 a[1, 4]
  </code>
-        </td>
-        <td>
-            <code>
+</td>
+<td>
+<code>
 a.get([1, 4])
  </code>
-        </td>
-    </tr>
+</td>
+</tr>
 
-    <tr>
-        <td>
-            <code>
+<tr>
+<td>
+<code>
 a[1]
  </code>
-        </td>
-        <td>
-            <code>
+</td>
+<td>
+<code>
 a.slice([1])
  </code>
-        </td>
-    </tr>
+</td>
+</tr>
 
-    <tr>
-        <td>
-            <code>
+<tr>
+<td>
+<code>
 a[0:5]
  </code>
-        </td>
-        <td>
-            <code>
+</td>
+<td>
+<code>
 a.slice([0, 5])
  </code>
-        </td>
-    </tr>
+</td>
+</tr>
 
-    <tr>
-        <td>
-            <code>
+<tr>
+<td>
+<code>
 a[1:4:2]
  </code>
-        </td>
-        <td>
-            <code>
+</td>
+<td>
+<code>
 a.slice([1, 4, 2])
  </code>
-        </td>
-    </tr>
+</td>
+</tr>
 
 </table>
 
