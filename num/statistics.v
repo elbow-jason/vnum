@@ -112,11 +112,11 @@ pub fn ptp(n NdArray) f64 {
 
 // ptp_axis returns the difference between the max and min along an axis
 pub fn ptp_axis(n NdArray, axis int) NdArray {
-	return num.subtract(max_axis(n, axis), num.min_axis(n, axis))
+	return subtract(max_axis(n, axis), min_axis(n, axis))
 }
 
 // ptp_axis_dims returns the difference between the max and min along an axis
 // with the reduced dimension intact
 pub fn ptp_axis_dims(n NdArray, axis int) NdArray {
-	return num.subtract(max_axis_dims(n, axis), num.min_axis_dims(n, axis))
+	return subtract(max_axis_dims(n, axis), min_axis_dims(n, axis))
 }

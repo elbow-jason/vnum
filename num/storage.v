@@ -1,15 +1,15 @@
 module num
 
 import math
-// Buffer is a generic interface to represent data storage
-// for an ndarray.
-interface Buffer {
-	ptr          ()&f64
-	stride_offset(shape []int, strides []int)&f64
-	offset       (start int)Buffer
-	set          (index []int, strides []int, value f64)get          (index []int, strides []int)f64
-}
-
+// // Buffer is a generic interface to represent data storage
+// // for an ndarray.
+// interface Buffer {
+// ptr          ()&f64
+// stride_offset(shape []int, strides []int)&f64
+// offset       (start int)Buffer
+// set          (index []int, strides []int, value f64)
+// get          (index []int, strides []int)f64
+// }
 // Storage for computations run on a CPU
 struct CpuStorage {
 	buffer &f64
