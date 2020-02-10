@@ -221,6 +221,97 @@ a.slice([1, 4, 2])
 </td>
 </tr>
 
+<tr>
+<td>
+<code>
+a.T
+ </code>
+</td>
+<td>
+<code>
+a.t()
+ </code>
+</td>
+</tr>
+
+<tr>
+<td>
+<code>
+mat1.dot(mat2)
+ </code>
+</td>
+<td>
+<code>
+la.matmul(mat2, mat2)
+ </code>
+</td>
+</tr>
+
+<tr>
+<td>
+<code>
+np.sum(a, axis=1)
+ </code>
+</td>
+<td>
+<code>
+num.sum_axis(1)
+ </code>
+</td>
+</tr>
+
+<tr>
+<td>
+<code>
+np.diag(a)
+ </code>
+</td>
+<td>
+<code>
+num.diag(a)
+ </code>
+</td>
+</tr>
+
+<tr>
+<td>
+<code>
+a[:] = 3
+ </code>
+</td>
+<td>
+<code>
+a.fill(3)
+ </code>
+</td>
+</tr>
+
+<tr>
+<td>
+<code>
+a[:] = b
+ </code>
+</td>
+<td>
+<code>
+a.assign(b)
+ </code>
+</td>
+</tr>
+
+<tr>
+<td>
+<code>
+np.concatenate((a, b), axis=1)
+ </code>
+</td>
+<td>
+<code>
+num.concatenate([a, b], 1)
+ </code>
+</td>
+</tr>
+
 </table>
 
 ## License
