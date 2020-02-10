@@ -1,7 +1,6 @@
-module ndarray
+module num
 
 import strings
-import vnum.internal
 
 struct ArrayFlags {
 pub mut:
@@ -11,10 +10,8 @@ pub mut:
 	write      bool
 }
 
-// default_flags returns a generic set of flags given a memory layout
-// for an array.  This does not take into account a 1D case, so it
-// is still safer to update flags afterwards.
-fn default_flags(order string) ArrayFlags {
+// default_flags returns a generic set of flags given a memory layout // for an array.  This does not take into account a 1D case, so it // is still safer to update flags afterwards.
+fn default_flags(order string, ndims int) ArrayFlags {
 	mut m := ArrayFlags{
 		contiguous: false
 		fortran: false
@@ -23,15 +20,20 @@ fn default_flags(order string) ArrayFlags {
 	}
 	if (order == 'F') {
 		m.fortran = true
+		if ndims == 1 {
+			m.contiguous = true
+		}
 	}
 	else if (order == 'C') {
 		m.contiguous = true
+		if ndims == 1 {
+			m.fortran = true
+		}
 	}
 	return m
 }
 
-// str() returns the string representation of an ArrayFlags struct,
-// providing helpful information about the memory layout of an ndarray
+// str() returns the string representation of an ArrayFlags struct, // providing helpful information about the memory layout of an ndarray
 pub fn (f ArrayFlags) str() string {
 	mut io := strings.new_builder(1000)
 	io.write('C_CONTIGUOUS: ')
@@ -45,9 +47,7 @@ pub fn (f ArrayFlags) str() string {
 	return io.str()
 }
 
-// all_flags returns an ArrayFlags object with all the flags set to true,
-// helpful for updating the flags of an existing array, to compare
-// against the existing flagmask
+// all_flags returns an ArrayFlags object with all the flags set to true, // helpful for updating the flags of an existing array, to compare // against the existing flagmask
 fn all_flags() ArrayFlags {
 	m := ArrayFlags{
 		contiguous: true
@@ -58,9 +58,7 @@ fn all_flags() ArrayFlags {
 	return m
 }
 
-// no_flags returns an ArrayFlags object with no flags set to true,
-// helpful for broadcasting methods where the result is read only
-// and non-contiguous
+// no_flags returns an ArrayFlags object with no flags set to true, // helpful for broadcasting methods where the result is read only // and non-contiguous
 pub fn no_flags() ArrayFlags {
 	m := ArrayFlags{
 		contiguous: false
@@ -71,8 +69,7 @@ pub fn no_flags() ArrayFlags {
 	return m
 }
 
-// dup_flags returns a duplicated set of flags from an existing
-// ArrayFlags object
+// dup_flags returns a duplicated set of flags from an existing // ArrayFlags object
 fn dup_flags(f ArrayFlags) ArrayFlags {
 	ret := ArrayFlags{
 		contiguous: f.contiguous
@@ -83,12 +80,10 @@ fn dup_flags(f ArrayFlags) ArrayFlags {
 	return ret
 }
 
-// update_flags updates the flags of an ndarray, taking into account
-// a provided flagmask.  Checks for the memory layout of the underlying
-// data and updates flags accordingly
+// update_flags updates the flags of an ndarray, taking into account // a provided flagmask.  Checks for the memory layout of the underlying // data and updates flags accordingly
 pub fn (n mut NdArray) update_flags(mask ArrayFlags) {
 	if (mask.fortran && n.flags.fortran) {
-		if internal.is_fortran_contiguous(n.shape, n.strides, n.ndims) {
+		if is_fortran_contiguous(n.shape, n.strides, n.ndims) {
 			n.flags.fortran = true
 			if n.ndims > 1 {
 				n.flags.contiguous = false
@@ -99,7 +94,7 @@ pub fn (n mut NdArray) update_flags(mask ArrayFlags) {
 		}
 	}
 	if (mask.contiguous && n.flags.contiguous) {
-		if internal.is_contiguous(n.shape, n.strides, n.ndims) {
+		if is_contiguous(n.shape, n.strides, n.ndims) {
 			n.flags.contiguous = true
 			if n.ndims > 1 {
 				n.flags.fortran = false

@@ -1,64 +1,72 @@
 module la
 
-import vnum.ndarray
+import vnum.num
 
-pub fn dot(a ndarray.NdArray, b ndarray.NdArray) f64 {
+pub fn dot(a num.NdArray, b num.NdArray) f64 {
 	return wrap_ddot(a, b)
 }
 
-pub fn outer(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+pub fn outer(a num.NdArray, b num.NdArray) num.NdArray {
 	return wrap_dger(a, b)
 }
 
-pub fn vector_norm(a ndarray.NdArray) f64 {
+pub fn vector_norm(a num.NdArray) f64 {
 	return wrap_dnrm2(a)
 }
 
-pub fn matrix_norm(a ndarray.NdArray, norm byte) f64 {
+pub fn matrix_norm(a num.NdArray, norm byte) f64 {
 	return wrap_dlange(a, norm)
 }
 
-pub fn cholesky(a ndarray.NdArray, uplo byte) ndarray.NdArray {
+pub fn cholesky(a num.NdArray, uplo byte) num.NdArray {
 	return wrap_dpotrf(a, uplo)
 }
 
-pub fn det(a ndarray.NdArray) f64 {
+pub fn det(a num.NdArray) f64 {
 	return wrap_det(a)
 }
 
-pub fn inv(a ndarray.NdArray) ndarray.NdArray {
+pub fn inv(a num.NdArray) num.NdArray {
 	return wrap_inv(a)
 }
 
-pub fn matmul(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+pub fn matmul(a num.NdArray, b num.NdArray) num.NdArray {
 	return wrap_matmul(a, b)
 }
 
-pub fn eigh(a ndarray.NdArray) []ndarray.NdArray {
+pub fn eigh(a num.NdArray) []num.NdArray {
 	return wrap_eigh(a)
 }
 
-pub fn eig(a ndarray.NdArray) []ndarray.NdArray {
+pub fn eig(a num.NdArray) []num.NdArray {
 	return wrap_eig(a)
 }
 
-pub fn eigvalsh(a ndarray.NdArray) ndarray.NdArray {
+pub fn eigvalsh(a num.NdArray) num.NdArray {
 	return wrap_eigvalsh(a)
 }
 
-pub fn eigvals(a ndarray.NdArray) ndarray.NdArray {
+pub fn eigvals(a num.NdArray) num.NdArray {
 	return wrap_eigvals(a)
 }
 
-pub fn solve(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+pub fn solve(a num.NdArray, b num.NdArray) num.NdArray {
 	return wrap_solve(a, b)
 }
 
-pub fn hessenberg(a ndarray.NdArray) ndarray.NdArray {
+pub fn hessenberg(a num.NdArray) num.NdArray {
 	return wrap_hessenberg(a)
 }
 
-pub fn tensordot(a ndarray.NdArray, b ndarray.NdArray, ax_a []int, ax_b []int) ndarray.NdArray {
+fn int_prod(a []int) int {
+	mut i := 1
+	for el in a {
+		i *= el
+	}
+	return i
+}
+
+pub fn tensordot(a num.NdArray, b num.NdArray, ax_a []int, ax_b []int) num.NdArray {
 	as_ := a.shape
 	nda := a.ndims
 	bs := b.shape
@@ -86,7 +94,7 @@ pub fn tensordot(a ndarray.NdArray, b ndarray.NdArray, ax_a []int, ax_b []int) n
 	if !equal {
 		panic('shape-mismatch for sum')
 	}
-	tmp := ndarray.range(0, nda)
+	tmp := num.irange(0, nda)
 	notin := tmp.filter(!(it in axes_a))
 	mut newaxes_a := notin.clone()
 	newaxes_a << axes_a
@@ -95,10 +103,9 @@ pub fn tensordot(a ndarray.NdArray, b ndarray.NdArray, ax_a []int, ax_b []int) n
 		n2 *= as_[axis]
 	}
 	firstdim := notin.map(as_[it])
-	tv := ndarray.from_int(firstdim, [firstdim.len]).iter()
-	val := int(tv.prod())
+	val := int_prod(firstdim)
 	newshape_a := [val, n2]
-	tmpb := ndarray.range(0, ndb)
+	tmpb := num.irange(0, ndb)
 	notinb := tmpb.filter(!(it in axes_b))
 	mut newaxes_b := axes_b.clone()
 	newaxes_b << notinb
@@ -107,8 +114,7 @@ pub fn tensordot(a ndarray.NdArray, b ndarray.NdArray, ax_a []int, ax_b []int) n
 		n2 *= bs[axis]
 	}
 	firstdimb := notin.map(bs[it])
-	tvb := ndarray.from_int(firstdimb, [firstdimb.len]).iter()
-	valb := int(tvb.prod())
+	valb := int_prod(firstdimb)
 	newshape_b := [n2, valb]
 	mut outshape := []int
 	outshape << firstdim

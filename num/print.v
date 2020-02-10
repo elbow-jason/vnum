@@ -1,11 +1,10 @@
-module ndarray
-// concatenates two ndarrays together, this has to be here
-// and not in num since its needed for print.
+module num
+// concatenates two ndarrays together, this has to be here // and not in num since its needed for print.
 pub fn concatenate(ts []NdArray, axis int) NdArray {
 	mut newshape := ts[0].shape.clone()
 	newshape[axis] = 0
 	newshape = assert_shape_off_axis(ts, axis, newshape)
-	ret := allocate_ndarray(newshape, 'C')
+	ret := allocate_cpu(newshape, 'C')
 	mut lo := [0].repeat(newshape.len)
 	mut hi := newshape.clone()
 	hi[axis] = 0
@@ -19,8 +18,7 @@ pub fn concatenate(ts []NdArray, axis int) NdArray {
 	return ret
 }
 
-// for arrays that are too large, calculate only the leading and trailing
-// items along each axis
+// for arrays that are too large, calculate only the leading and trailing // items along each axis
 fn leading_trailing(a NdArray, edgeitems int, lo []int, hi []int) NdArray {
 	axis := lo.len
 	if axis == a.ndims {
@@ -178,9 +176,11 @@ fn format_float(v f64, notation bool) string {
 		return v.strsci(3)
 	}
 	else {
-		buf := malloc(8 * 5 + 1) // TODO
-		C.sprintf(charptr(buf), '%g', v)
-		return tos(buf, vstrlen(buf))
+		unsafe{
+			buf := malloc(8 * 5 + 1) // TODO
+			C.sprintf(charptr(buf), '%g', v)
+			return tos(buf, vstrlen(buf))
+		}
 	}
 }
 
@@ -196,8 +196,7 @@ fn max_str_len(a NdArray) int {
 	return mx
 }
 
-// adjusts a string to be aligned with one side
-// of the output
+// adjusts a string to be aligned with one side // of the output
 fn rjust(s string, n int) string {
 	diff := n - s.len
 	if diff > 0 {

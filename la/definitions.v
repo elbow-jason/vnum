@@ -1,6 +1,5 @@
 module la
 
-import vnum.ndarray
 import vnum.num
 
 enum matrix_layout {
@@ -82,7 +81,7 @@ fn C.dgebal_(job &byte, n &int, a &f64, lda &int, ilo &int, ihi &int, scale &f64
 fn C.dgehrd_(n &int, ilo &int, ihi &int, a &f64, lda &int, tau &f64, work &f64, lwork &int, info &int)
 
 
-fn fortran_view_or_copy(t ndarray.NdArray) ndarray.NdArray {
+fn fortran_view_or_copy(t num.NdArray) num.NdArray {
 	if t.flags.fortran {
 		return t.view()
 	}
@@ -91,64 +90,64 @@ fn fortran_view_or_copy(t ndarray.NdArray) ndarray.NdArray {
 	}
 }
 
-fn fortran_copy(t ndarray.NdArray) ndarray.NdArray {
+fn fortran_copy(t num.NdArray) num.NdArray {
 	return t.copy('F')
 }
 
-fn assert_square_matrix(a ndarray.NdArray) {
+fn assert_square_matrix(a num.NdArray) {
 	if a.ndims != 2 || a.shape[0] != a.shape[1] {
 		panic('Matrix is not square')
 	}
 }
 
-fn assert_matrix(a ndarray.NdArray) {
+fn assert_matrix(a num.NdArray) {
 	if a.ndims != 2 {
 		panic('Tensor is not two-dimensional')
 	}
 }
 
-fn wrap_ddot(a ndarray.NdArray, b ndarray.NdArray) f64 {
+fn wrap_ddot(a num.NdArray, b num.NdArray) f64 {
 	if a.ndims != 1 || b.ndims != 1 {
 		panic('Tensors must be one dimensional')
 	}
 	else if a.size != b.size {
 		panic('Tensors must have the same shape')
 	}
-	return C.cblas_ddot(a.size, a.buffer, a.strides[0], b.buffer, b.strides[0])
+	return C.cblas_ddot(a.size, a.buffer(), a.strides[0], b.buffer(), b.strides[0])
 }
 
-fn wrap_dger(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+fn wrap_dger(a num.NdArray, b num.NdArray) num.NdArray {
 	if a.ndims != 1 || b.ndims != 1 {
 		panic('Tensors must be one dimensional')
 	}
 	out := num.empty([a.size, b.size])
-	C.cblas_dger(matrix_layout.row_major, a.size, b.size, 1.0, a.buffer, a.strides[0], b.buffer, b.strides[0], out.buffer, out.shape[1])
+	C.cblas_dger(matrix_layout.row_major, a.size, b.size, 1.0, a.buffer(), a.strides[0], b.buffer(), b.strides[0], out.buffer(), out.shape[1])
 	return out
 }
 
-fn wrap_dnrm2(a ndarray.NdArray) f64 {
+fn wrap_dnrm2(a num.NdArray) f64 {
 	if a.ndims != 1 {
 		panic('Tensor must be one dimensional')
 	}
-	return C.cblas_dnrm2(a.size, a.buffer, a.strides[0])
+	return C.cblas_dnrm2(a.size, a.buffer(), a.strides[0])
 }
 
-fn wrap_dlange(a ndarray.NdArray, norm byte) f64 {
+fn wrap_dlange(a num.NdArray, norm byte) f64 {
 	if a.ndims != 2 {
 		panic('Tensor must be two-dimensional')
 	}
 	m := fortran_view_or_copy(a)
 	work := *f64(calloc(m.shape[0] * sizeof(f64)))
-	return C.dlange_(&norm, &m.shape[0], &m.shape[1], m.buffer, &m.shape[0], work)
+	return C.dlange_(&norm, &m.shape[0], &m.shape[1], m.buffer(), &m.shape[0], work)
 }
 
-fn wrap_dpotrf(a ndarray.NdArray, uplo byte) ndarray.NdArray {
+fn wrap_dpotrf(a num.NdArray, uplo byte) num.NdArray {
 	if a.ndims != 2 {
 		panic('Tensor must be two-dimensional')
 	}
 	ret := a.copy('F')
 	info := 0
-	C.dpotrf_(&uplo, &ret.shape[0], ret.buffer, &ret.shape[0], &info)
+	C.dpotrf_(&uplo, &ret.shape[0], ret.buffer(), &ret.shape[0], &info)
 	if info > 0 {
 		panic('Tensor is not positive definite')
 	}
@@ -164,17 +163,17 @@ fn wrap_dpotrf(a ndarray.NdArray, uplo byte) ndarray.NdArray {
 	return ret
 }
 
-fn wrap_det(a ndarray.NdArray) f64 {
+fn wrap_det(a num.NdArray) f64 {
 	ret := a.copy('F')
 	m := a.shape[0]
 	n := a.shape[1]
 	ipiv := *int(calloc(sizeof(int) * n))
 	info := 0
-	C.dgetrf_(&m, &n, ret.buffer, &m, ipiv, &info)
+	C.dgetrf_(&m, &n, ret.buffer(), &m, ipiv, &info)
 	if info > 0 {
 		panic('Singular matrix')
 	}
-	ldet := ret.diagonal().iter().prod()
+	ldet := num.prod(ret.diagonal())
 	mut detp := 1
 	for i := 0; i < n; i++ {
 		if (i + 1) != *(ipiv + i) {
@@ -184,7 +183,7 @@ fn wrap_det(a ndarray.NdArray) f64 {
 	return ldet * detp
 }
 
-fn wrap_inv(a ndarray.NdArray) ndarray.NdArray {
+fn wrap_inv(a num.NdArray) num.NdArray {
 	if a.ndims != 2 || a.shape[0] != a.shape[1] {
 		panic('Matrix must be square')
 	}
@@ -192,17 +191,17 @@ fn wrap_inv(a ndarray.NdArray) ndarray.NdArray {
 	n := a.shape[0]
 	ipiv := *int(calloc(n * sizeof(int)))
 	info := 0
-	C.dgetrf_(&n, &n, ret.buffer, &n, ipiv, &info)
+	C.dgetrf_(&n, &n, ret.buffer(), &n, ipiv, &info)
 	if info > 0 {
 		panic('Singular matrix')
 	}
 	lwork := n * n
 	work := *f64(calloc(lwork * sizeof(f64)))
-	C.dgetri_(&n, ret.buffer, &n, ipiv, work, &lwork, &info)
+	C.dgetri_(&n, ret.buffer(), &n, ipiv, work, &lwork, &info)
 	return ret
 }
 
-fn wrap_matmul(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+fn wrap_matmul(a num.NdArray, b num.NdArray) num.NdArray {
 	dest := num.empty([a.shape[0], b.shape[1]])
 	ma := match (a.flags.contiguous) {
 		true{
@@ -218,11 +217,11 @@ fn wrap_matmul(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
 		else {
 			b.copy('C')}
 	}
-	C.cblas_dgemm(matrix_layout.row_major, blas_transpose.no_trans, .no_trans, ma.shape[0], mb.shape[1], ma.shape[1], 1.0, ma.buffer, ma.shape[1], mb.buffer, mb.shape[1], 1.0, dest.buffer, dest.shape[1])
+	C.cblas_dgemm(matrix_layout.row_major, blas_transpose.no_trans, .no_trans, ma.shape[0], mb.shape[1], ma.shape[1], 1.0, ma.buffer(), ma.shape[1], mb.buffer(), mb.shape[1], 1.0, dest.buffer(), dest.shape[1])
 	return dest
 }
 
-fn wrap_eigh(a ndarray.NdArray) []ndarray.NdArray {
+fn wrap_eigh(a num.NdArray) []num.NdArray {
 	assert_square_matrix(a)
 	ret := a.copy('F')
 	n := ret.shape[0]
@@ -231,33 +230,33 @@ fn wrap_eigh(a ndarray.NdArray) []ndarray.NdArray {
 	uplo := `L`
 	info := 0
 	workspace := allocate_workspace(3 * n - 1)
-	C.dsyev_(&jobz, &uplo, &n, ret.buffer, &n, w.buffer, workspace.work, &workspace.size, &info)
+	C.dsyev_(&jobz, &uplo, &n, ret.buffer(), &n, w.buffer(), workspace.work, &workspace.size, &info)
 	if info > 0 {
 		panic('Failed to converge')
 	}
 	return [w, ret]
 }
 
-fn wrap_eig(a ndarray.NdArray) []ndarray.NdArray {
+fn wrap_eig(a num.NdArray) []num.NdArray {
 	assert_square_matrix(a)
 	ret := a.copy('F')
 	n := ret.shape[0]
 	wr := num.empty([n])
 	wl := wr.copy('C')
-	vl := ndarray.allocate_ndarray([n, n], 'F')
+	vl := num.allocate_cpu([n, n], 'F')
 	vr := vl.copy('C')
 	workspace := allocate_workspace(n * 4)
 	jobvr := `V`
 	jobvl := `V`
 	info := 0
-	C.dgeev_(&jobvl, &jobvr, &n, ret.buffer, &n, wr.buffer, wl.buffer, vl.buffer, &n, vr.buffer, &n, workspace.work, &workspace.size, &info)
+	C.dgeev_(&jobvl, &jobvr, &n, ret.buffer(), &n, wr.buffer(), wl.buffer(), vl.buffer(), &n, vr.buffer(), &n, workspace.work, &workspace.size, &info)
 	if info > 0 {
 		panic('QR algorithm failed')
 	}
 	return [wr, vl]
 }
 
-pub fn wrap_eigvalsh(a ndarray.NdArray) ndarray.NdArray {
+pub fn wrap_eigvalsh(a num.NdArray) num.NdArray {
 	assert_square_matrix(a)
 	ret := fortran_view_or_copy(a)
 	n := ret.shape[0]
@@ -266,33 +265,33 @@ pub fn wrap_eigvalsh(a ndarray.NdArray) ndarray.NdArray {
 	info := 0
 	w := num.empty([n])
 	workspace := allocate_workspace(3 * n - 1)
-	C.dsyev_(&jobz, &uplo, &n, ret.buffer, &n, w.buffer, workspace.work, &workspace.size, &info)
+	C.dsyev_(&jobz, &uplo, &n, ret.buffer(), &n, w.buffer(), workspace.work, &workspace.size, &info)
 	if info > 0 {
 		panic('Failed to converge')
 	}
 	return w
 }
 
-pub fn wrap_eigvals(a ndarray.NdArray) ndarray.NdArray {
+pub fn wrap_eigvals(a num.NdArray) num.NdArray {
 	assert_square_matrix(a)
 	ret := a.copy('F')
 	n := ret.shape[0]
 	wr := num.empty([n])
 	wl := wr.copy('C')
-	vl := ndarray.allocate_ndarray([n, n], 'F')
+	vl := num.allocate_cpu([n, n], 'F')
 	vr := vl.copy('C')
 	workspace := allocate_workspace(n * 3)
 	jobvr := `N`
 	jobvl := `N`
 	info := 0
-	C.dgeev_(&jobvl, &jobvr, &n, ret.buffer, &n, wr.buffer, wl.buffer, vl.buffer, &n, vr.buffer, &n, workspace.work, &workspace.size, &info)
+	C.dgeev_(&jobvl, &jobvr, &n, ret.buffer(), &n, wr.buffer(), wl.buffer(), vl.buffer(), &n, vr.buffer(), &n, workspace.work, &workspace.size, &info)
 	if info > 0 {
 		panic('QR algorithm failed')
 	}
 	return wr
 }
 
-pub fn wrap_solve(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
+pub fn wrap_solve(a num.NdArray, b num.NdArray) num.NdArray {
 	assert_square_matrix(a)
 	af := fortran_view_or_copy(a)
 	bf := b.copy('F')
@@ -303,11 +302,11 @@ pub fn wrap_solve(a ndarray.NdArray, b ndarray.NdArray) ndarray.NdArray {
 	}
 	ipiv := *int(calloc(n * sizeof(int)))
 	info := 0
-	C.dgesv_(&n, &m, af.buffer, &n, ipiv, bf.buffer, &m, &info)
+	C.dgesv_(&n, &m, af.buffer(), &n, ipiv, bf.buffer(), &m, &info)
 	return bf
 }
 
-pub fn wrap_hessenberg(a ndarray.NdArray) ndarray.NdArray {
+pub fn wrap_hessenberg(a num.NdArray) num.NdArray {
 	assert_square_matrix(a)
 	ret := a.copy('F')
 	if ret.shape[0] < 2 {
@@ -319,10 +318,10 @@ pub fn wrap_hessenberg(a ndarray.NdArray) ndarray.NdArray {
 	ihi := 0
 	job := `B`
 	info := 0
-	C.dgebal_(&job, &n, ret.buffer, &n, &ilo, &ihi, s.buffer, &info)
+	C.dgebal_(&job, &n, ret.buffer(), &n, &ilo, &ihi, s.buffer(), &info)
 	tau := num.empty([n])
 	workspace := allocate_workspace(n)
-	C.dgehrd_(&n, &ilo, &ihi, ret.buffer, &n, tau.buffer, workspace.work, &workspace.size, &info)
+	C.dgehrd_(&n, &ilo, &ihi, ret.buffer(), &n, tau.buffer(), workspace.work, &workspace.size, &info)
 	num.triu_inpl_offset(ret, -1)
 	return ret
 }
