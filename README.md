@@ -57,9 +57,30 @@ Use the `vnum.linalg` module for powerful `BLAS` backed routines.
  [4928, 5306]]
 ```
 
+## For Numpy Users
+
+<table>
+<tr>
+    <th>NumPy </th>
+    <th>Vnum</th>
+    </tr>
+<tr>
+<td>
+```python
+np.array([[1.,2.,3.], [4.,5.,6.]])
+```
+</td>
+<td>
+```v
+num.from_int([1, 2, 3, 4, 5, 6], [2, 3])
+```
+</td>
+</tr> 
+</table>
+
 ## License
 
-[MIT](LICENSE)
+[BSD-3](LICENSE)
 
 
 ## Core Team
