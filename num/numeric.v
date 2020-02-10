@@ -74,7 +74,7 @@ pub fn sign(arr NdArray) NdArray {
 }
 
 // Returns the sign of an input scalar.  0 for zero // -1 for negative values, and 1 for positive values
-fn sign_scalar(value f64) f64 {
+pub fn sign_scalar(value f64) f64 {
 	if value == 0.0 {
 		return 0.0
 	}
