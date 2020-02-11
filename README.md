@@ -16,7 +16,7 @@ It provides:
 Using [vpm](https://vpm.best/)
 
 ```sh
-$ v install christopherzimmerman.num
+$ v install christopherzimmerman.vnum
 $ ln -sf ~/.vmodules/christopherzimmerman/vnum/ ~/.vmodules/vnum
 ```
 
@@ -55,6 +55,22 @@ Use the `vnum.linalg` module for powerful `BLAS` backed routines.
  [4664, 5018],
  [4796, 5162],
  [4928, 5306]]
+```
+
+Basic support for Machine Learning is being added in the `vnum.nn` module.  Here is a basic example learning the XOR function
+
+```
+>>> import vnum.nn
+>>> import vnum.num
+>>> features := num.from_int([0, 0, 0, 1, 1, 0, 1, 1], [4, 2])
+>>> labels := num.from_int([0, 1, 1, 0], [4, 1])
+>>> mut m := nn.new(0.7, 10000, 3, "sigmoid")
+>>> m.learn(features, labels)
+>>> m.predict(features)
+[[ 0.0387387],
+ [  0.976217],
+ [  0.976216],
+ [0.00880164]]
 ```
 
 ## For Numpy Users
