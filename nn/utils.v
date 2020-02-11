@@ -46,7 +46,8 @@ fn relu_map(n &num.NdArray) num.NdArray {
 fn relu_prime(z f64) f64 {
 	if z < 0 {
 		return 0
-	} else {
+	}
+	else {
 		return 1
 	}
 }
@@ -60,7 +61,7 @@ fn softplus(x f64) f64 {
 }
 
 fn softplus_prime(x f64) f64 {
-	return f64(1) / (f64(1) + math.pow(math.e, -x)) 
+	return f64(1) / (f64(1) + math.pow(math.e, -x))
 }
 
 fn softplus_map(n &num.NdArray) num.NdArray {
@@ -70,4 +71,3 @@ fn softplus_map(n &num.NdArray) num.NdArray {
 fn softplus_prime_map(n &num.NdArray) num.NdArray {
 	return num.amap(n, softplus_prime)
 }
-

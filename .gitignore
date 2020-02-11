@@ -4,3 +4,4 @@ test
 fns.txt
 _build
 _static
+*.o

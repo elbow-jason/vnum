@@ -63,7 +63,6 @@ pub fn (n mut Network) learn(inputs, outputs num.NdArray) {
 	outcols := outputs.shape[1]
 	n.weights.input_hidden = normals(incols, n.hidden_units)
 	n.weights.output_hidden = normals(n.hidden_units, outcols)
-
 	for i := 0; i < n.iterations; i++ {
 		n.forward(inputs)
 		n.back(inputs, outputs)

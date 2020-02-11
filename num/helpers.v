@@ -43,7 +43,7 @@ fn fstrides(shape []int) []int {
 }
 
 // shape_compare asserts that two shapes are equal
-fn shape_compare(s1 []int, s2 []int) bool {
+pub fn shape_compare(s1 []int, s2 []int) bool {
 	if s1.len != s2.len {
 		return false
 	}

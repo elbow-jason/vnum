@@ -36,6 +36,12 @@ pub fn (c CpuStorage) stride_offset(shape []int, strides []int) &f64 {
 	return ptr
 }
 
+pub fn cpu_from_pointer(ptr &f64) CpuStorage {
+	return CpuStorage{
+		buffer: ptr
+	}
+}
+
 // offset returns a new buffer offset by a particular amount.
 // This makes slicing operations trivial when returning a new
 // buffer for the child array
