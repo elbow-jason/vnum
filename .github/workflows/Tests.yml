@@ -6,11 +6,3 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@master
-      with:
-        name: vlang/v
-    - uses: actions/checkout@v2
-    - name: Make Vlang
-      run: cd v && make && ./v symlink
