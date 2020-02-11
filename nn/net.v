@@ -1,0 +1,89 @@
+module nn
+
+import vnum.num
+import vnum.la
+
+struct Weights {
+mut:
+	input_hidden  num.NdArray
+	output_hidden num.NdArray
+}
+
+struct Results {
+mut:
+	hidden_sum    num.NdArray
+	hidden_result num.NdArray
+	output_sum    num.NdArray
+	output_result num.NdArray
+}
+
+struct Network {
+	learning_rate  f64
+	iterations     int
+	hidden_units   int
+mut:
+	activate       fn(f64)f64
+	activate_prime fn(f64)f64
+	weights        Weights
+	results        Results
+}
+
+pub fn new(rate f64, iterations int, units int, activator string) Network {
+	mut m := Network{
+		learning_rate: rate
+		iterations: iterations
+		hidden_units: units
+	}
+	match activator {
+		'sigmoid' {
+			m.activate = sigmoid
+			m.activate_prime = sigmoid_prime
+		}
+		'htan' {
+			m.activate = htan
+			m.activate_prime = htan_prime
+		}
+		else {
+			panic('Unknown activator $activator')
+		}
+	}
+	return m
+}
+
+pub fn (n mut Network) learn(inputs, outputs num.NdArray) {
+	incols := inputs.shape[1]
+	outcols := outputs.shape[1]
+	n.weights.input_hidden = normals(incols, n.hidden_units)
+	n.weights.output_hidden = normals(n.hidden_units, outcols)
+	for i := 0; i < n.iterations; i++ {
+		n.forward(inputs)
+		n.back(inputs, outputs)
+	}
+}
+
+pub fn (n mut Network) forward(input num.NdArray) {
+	hidden_sum := la.matmul(input, n.weights.input_hidden)
+	n.results.hidden_result = num.amap(hidden_sum, n.activate)
+	output_sum := la.matmul(n.results.hidden_result, n.weights.output_hidden)
+	n.results.output_result = num.amap(output_sum, n.activate)
+	n.results.hidden_sum = hidden_sum
+	n.results.output_sum = output_sum
+}
+
+pub fn (n mut Network) back(input num.NdArray, output num.NdArray) {
+	error_output_layer := num.subtract(output, n.results.output_result)
+	delta_output_layer := num.multiply(num.amap(n.results.output_sum, n.activate_prime), error_output_layer)
+	mut hidden_output_changes := la.matmul(n.results.hidden_result.t(), delta_output_layer)
+	hidden_output_changes = num.multiply_as(hidden_output_changes, n.learning_rate)
+	n.weights.output_hidden = num.add(hidden_output_changes, n.weights.output_hidden)
+	mut delta_hidden_layer := la.matmul(delta_output_layer, n.weights.output_hidden.t())
+	delta_hidden_layer = num.multiply(num.amap(n.results.hidden_sum, n.activate_prime), delta_hidden_layer)
+	mut input_hidden_changes := la.matmul(input.t(), delta_hidden_layer)
+	input_hidden_changes = num.multiply_as(input_hidden_changes, n.learning_rate)
+	n.weights.input_hidden = num.add(input_hidden_changes, n.weights.input_hidden)
+}
+
+pub fn (n mut Network) predict(input num.NdArray) num.NdArray {
+	n.forward(input)
+	return n.results.output_result
+}

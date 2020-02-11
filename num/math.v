@@ -288,12 +288,12 @@ pub fn maximum_aa(a, b NdArray) NdArray {
 }
 
 // maximum_sa returns the elementwise max of an ndarray and a scalar
-pub fn maximum_sa(a NdArray, b f64) NdArray {
+pub fn maximum_as(a NdArray, b f64) NdArray {
 	return map_scalar(a, b, math.max)
 }
 
 // maximum_as returns the elementwise max of a scalar and an ndarray
-pub fn maximum_as(a f64, b NdArray) NdArray {
+pub fn maximum_sa(a f64, b NdArray) NdArray {
 	return map_scalar(b, a, math.max)
 }
 
